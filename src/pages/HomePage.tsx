@@ -22,38 +22,7 @@ export function HomePage() {
   const [projectNumber, setProjectNumber] = useState('');
   const [nameError, setNameError] = useState('');
   if (!snapshot) return null;
-  if (!snapshot.project.name.trim()) {
-    return (
-      <form
-        className="space-y-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const errors = saveProject({ ...snapshot.project, name, projectNumber });
-          setNameError(errors[0] ?? '');
-        }}
-      >
-        <h1 className="text-2xl font-black">Start a project</h1>
-        <p className="text-sm text-pmi-muted">
-          The project starts empty. Joints, fittings, flanges, and valves appear only after you receive them.
-        </p>
-        {nameError ? (
-          <p role="alert" className="pmi-flag">
-            {nameError}
-          </p>
-        ) : null}
-        <Field label="Project name">
-          <input className={controlClass} value={name} onChange={(event) => setName(event.target.value)} />
-        </Field>
-        <Field label="Project number">
-          <input className={`${controlClass} pmi-code`} value={projectNumber} onChange={(event) => setProjectNumber(event.target.value)} />
-        </Field>
-        <button type="submit" className="min-h-14 w-full bg-pmi-accent text-lg font-black text-pmi-accent-text">
-          Save project
-        </button>
-      </form>
-    );
-  }
-
+  const unnamed = !snapshot.project.name.trim();
   const today = localIsoDate();
   const summary = summarizeDashboard(snapshot, today);
   const tiles: Array<{ id: Drill; label: string; value: number }> = [
@@ -69,17 +38,49 @@ export function HomePage() {
     <div className="space-y-3">
       <section className="border-2 border-pmi-border border-l-[6px] border-l-pmi-ink bg-pmi-card px-3 py-3" aria-labelledby="project-heading">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-pmi-muted">Project</p>
-        <h1 id="project-heading" className="mt-1 text-3xl font-black leading-none tracking-tight">
-          {summary.projectName}
-        </h1>
-        <p className="pmi-code mt-2 text-xl font-bold">{snapshot.project.projectNumber}</p>
-        <p className="mt-1 text-sm font-bold">
-          {snapshot.project.atmosProjectNumber} · CO {snapshot.project.constructionOrderNo}
-        </p>
-        <p className="text-sm text-pmi-muted">{snapshot.project.inspectorName}</p>
-        {snapshot.materials.length === 0 && !snapshot.settings.sample ? (
-          <p className="mt-2 text-sm font-bold">No material received yet.</p>
-        ) : null}
+        {unnamed ? (
+          <form
+            className="mt-2 space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const errors = saveProject({ ...snapshot.project, name, projectNumber });
+              setNameError(errors[0] ?? '');
+            }}
+          >
+            <h1 id="project-heading" className="text-3xl font-black leading-none tracking-tight">
+              Project
+            </h1>
+            <p className="text-sm font-bold">No material received yet.</p>
+            {nameError ? (
+              <p role="alert" className="pmi-flag">
+                {nameError}
+              </p>
+            ) : null}
+            <Field label="Project name">
+              <input className={controlClass} value={name} onChange={(event) => setName(event.target.value)} />
+            </Field>
+            <Field label="Project number">
+              <input className={`${controlClass} pmi-code`} value={projectNumber} onChange={(event) => setProjectNumber(event.target.value)} />
+            </Field>
+            <button type="submit" className="min-h-14 w-full bg-pmi-accent text-lg font-black text-pmi-accent-text">
+              Save project
+            </button>
+          </form>
+        ) : (
+          <>
+            <h1 id="project-heading" className="mt-1 text-3xl font-black leading-none tracking-tight">
+              {summary.projectName}
+            </h1>
+            <p className="pmi-code mt-2 text-xl font-bold">{snapshot.project.projectNumber}</p>
+            <p className="mt-1 text-sm font-bold">
+              {snapshot.project.atmosProjectNumber} · CO {snapshot.project.constructionOrderNo}
+            </p>
+            <p className="text-sm text-pmi-muted">{snapshot.project.inspectorName}</p>
+            {snapshot.materials.length === 0 && !snapshot.settings.sample ? (
+              <p className="mt-2 text-sm font-bold">No material received yet.</p>
+            ) : null}
+          </>
+        )}
       </section>
 
       <SpecialtyNav />

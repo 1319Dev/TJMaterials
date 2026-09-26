@@ -78,11 +78,15 @@ test('outdoor theme is an explicit choice', () => {
   expect(document.documentElement.dataset.theme).toBe('outdoor');
 });
 
-test('a new project starts empty until material is received', () => {
+test('a new project opens on the field home with no material', () => {
   renderAt(emptySnapshot());
-  expect(screen.getByRole('heading', { name: 'Start a project' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Project' })).toBeInTheDocument();
+  expect(screen.getByText('No material received yet.')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
   expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
   expect(screen.queryByText('PMI-PIPE-000001')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Work on this device' })).not.toBeInTheDocument();
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
 });
 
