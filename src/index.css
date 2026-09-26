@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --pmi-bg: #f3f0e8;
+  --pmi-card: #fffdf8;
+  --pmi-text: #1a1814;
+  --pmi-muted: #3a342c;
+  --pmi-accent: #0c5c56;
+  --pmi-accent-text: #ffffff;
+  --pmi-border: #c9bfae;
+  --pmi-nav: #fffdf8;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --pmi-bg: #101614;
+  --pmi-card: #1a2421;
+  --pmi-text: #f4f7f5;
+  --pmi-muted: #c9d5cf;
+  --pmi-accent: #7ddec8;
+  --pmi-accent-text: #06221c;
+  --pmi-border: #3d524b;
+  --pmi-nav: #14201c;
+}
+
+[data-theme='outdoor'] {
+  color-scheme: dark;
+  --pmi-bg: #000000;
+  --pmi-card: #000000;
+  --pmi-text: #ffffff;
+  --pmi-muted: #ffffff;
+  --pmi-accent: #ffe500;
+  --pmi-accent-text: #000000;
+  --pmi-border: #ffe500;
+  --pmi-nav: #000000;
+}
+
+html {
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  background: var(--pmi-bg);
+  color: var(--pmi-text);
+  overscroll-behavior-y: none;
+}
+
+input,
+select,
+textarea {
+  font-size: 1.125rem;
+}
+
+html.pmi-keyboard .pmi-tabbar,
+html.pmi-keyboard .pmi-dock {
+  display: none;
+}
+
+html.pmi-keyboard .pmi-shell {
+  padding-bottom: 1.5rem;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pmi-accent);
+  outline-offset: 2px;
+}
+
+[data-theme='outdoor'] {
+  font-size: 112.5%;
+}
+
+[data-theme='outdoor'] :focus-visible {
+  outline-color: #ffe500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
