@@ -35,23 +35,18 @@ export function Shell() {
   }, []);
 
   return (
-    <div className="pmi-shell mx-auto min-h-[100dvh] max-w-lg px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div className="pmi-shell mx-auto min-h-[100dvh] max-w-lg px-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">
       <a href="#main" className="sr-only focus:not-sr-only">
         Skip to content
       </a>
-      <header className="mb-4 space-y-3">
+      <header className="pmi-mast -mx-3 mb-3 space-y-2 pt-[max(0.7rem,env(safe-area-inset-top))]">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-black uppercase tracking-wide">Pipeline Material Inspector</p>
-          <span className="rounded-full border-2 border-pmi-border px-2 py-1 text-xs font-bold">Guest</span>
+          <p className="text-sm font-black uppercase tracking-widest">Pipeline Material Inspector</p>
+          <span className="pmi-guest">GUEST</span>
         </div>
-        <p
-          className="rounded-2xl border-2 border-pmi-border bg-pmi-card px-3 py-3 text-sm font-bold leading-snug"
-          role="status"
-          aria-live="polite"
-          data-testid="sync-status"
-        >
+        <p className="pmi-sync" role="status" aria-live="polite" data-testid="sync-status">
           <span className="block uppercase">{syncLabel}</span>
-          <span className="mt-1 block font-medium text-pmi-muted">{syncDetail}</span>
+          <span className="pmi-sheet-quiet mt-0.5 block font-medium">{syncDetail}</span>
         </p>
         <Disclaimer />
         {onInstallPage ? null : (

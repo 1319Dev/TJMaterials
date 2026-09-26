@@ -9,7 +9,7 @@ const demo = buildDemoData(localIsoDate());
 
 test('home shows the project, queue state, and receive action', () => {
   renderAt(demo);
-  expect(screen.getByRole('heading', { name: 'PROJECT' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Guest Demo Spread' })).toBeInTheDocument();
   expect(screen.getByText('Guest Demo Spread')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /TODAY'S DELIVERIES/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /MATERIAL ON HOLD/ })).toBeInTheDocument();

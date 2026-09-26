@@ -96,7 +96,7 @@ export function AppProvider({
     if (!snapshot) return;
     document.documentElement.dataset.theme = snapshot.settings.theme;
     const themeColor =
-      snapshot.settings.theme === 'outdoor' ? '#000000' : snapshot.settings.theme === 'dark' ? '#101614' : '#0c5c56';
+      snapshot.settings.theme === 'outdoor' ? '#000000' : snapshot.settings.theme === 'dark' ? '#12161b' : '#2a3340';
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
   }, [snapshot]);
 

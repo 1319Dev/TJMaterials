@@ -5,26 +5,38 @@
 :root,
 [data-theme='light'] {
   color-scheme: light;
-  --pmi-bg: #f3f0e8;
-  --pmi-card: #fffdf8;
-  --pmi-text: #1a1814;
-  --pmi-muted: #3a342c;
-  --pmi-accent: #0c5c56;
-  --pmi-accent-text: #ffffff;
-  --pmi-border: #c9bfae;
-  --pmi-nav: #fffdf8;
+  --pmi-bg: #c5ccd4;
+  --pmi-card: #e7ebef;
+  --pmi-text: #12161b;
+  --pmi-muted: #3a4450;
+  --pmi-accent: #2a3340;
+  --pmi-accent-text: #f4f6f8;
+  --pmi-border: #6e7886;
+  --pmi-nav: #d5dbe2;
+  --pmi-ink: #1c232c;
+  --pmi-sheet-text: #f4f6f8;
+  --pmi-sheet-muted: #c5ccd4;
+  --pmi-hold: #e85d04;
+  --pmi-warn: #c47b00;
+  --pmi-rule: #8d97a4;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --pmi-bg: #101614;
-  --pmi-card: #1a2421;
-  --pmi-text: #f4f7f5;
-  --pmi-muted: #c9d5cf;
-  --pmi-accent: #7ddec8;
-  --pmi-accent-text: #06221c;
-  --pmi-border: #3d524b;
-  --pmi-nav: #14201c;
+  --pmi-bg: #12161b;
+  --pmi-card: #1c232c;
+  --pmi-text: #f2f4f6;
+  --pmi-muted: #c5ccd4;
+  --pmi-accent: #d7dde4;
+  --pmi-accent-text: #12161b;
+  --pmi-border: #5c6774;
+  --pmi-nav: #161a20;
+  --pmi-ink: #0d1116;
+  --pmi-sheet-text: #f4f6f8;
+  --pmi-sheet-muted: #c5ccd4;
+  --pmi-hold: #ff7a1a;
+  --pmi-warn: #ffb020;
+  --pmi-rule: #3d4652;
 }
 
 [data-theme='outdoor'] {
@@ -37,6 +49,12 @@
   --pmi-accent-text: #000000;
   --pmi-border: #ffe500;
   --pmi-nav: #000000;
+  --pmi-ink: #000000;
+  --pmi-sheet-text: #000000;
+  --pmi-sheet-muted: #000000;
+  --pmi-hold: #ffe500;
+  --pmi-warn: #ffe500;
+  --pmi-rule: #ffe500;
 }
 
 html {
@@ -84,7 +102,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid var(--pmi-accent);
+  outline: 3px solid var(--pmi-hold);
   outline-offset: 2px;
 }
 
@@ -94,6 +112,265 @@ a {
 
 [data-theme='outdoor'] :focus-visible {
   outline-color: #ffe500;
+}
+
+.pmi-shell .rounded-2xl,
+.pmi-shell .rounded-xl,
+.pmi-shell .rounded-lg,
+.pmi-shell .rounded-full {
+  border-radius: 2px;
+}
+
+.pmi-code {
+  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.pmi-mast {
+  background: var(--pmi-ink);
+  color: var(--pmi-sheet-text);
+  border-bottom: 5px solid var(--pmi-hold);
+  padding: 0.7rem 0.85rem 0.8rem;
+}
+
+.pmi-mast .text-pmi-muted,
+.pmi-mast .pmi-sheet-quiet {
+  color: var(--pmi-sheet-muted);
+}
+
+.pmi-sync {
+  border: 2px solid var(--pmi-rule);
+  background: transparent;
+  color: var(--pmi-sheet-text);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+}
+
+.pmi-guest {
+  border: 2px solid var(--pmi-hold);
+  color: var(--pmi-hold);
+  padding: 0.2rem 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.pmi-sheet-title {
+  margin: 0.35rem 0 0;
+  background: var(--pmi-ink);
+  color: var(--pmi-sheet-text);
+  border-left: 8px solid var(--pmi-hold);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+[data-theme='outdoor'] .pmi-sheet-title {
+  background: #ffe500;
+  color: #000000;
+  border-left-color: #000000;
+}
+
+.pmi-chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  border: 2px solid var(--pmi-border);
+  background: var(--pmi-card);
+  color: var(--pmi-text);
+  padding: 0.15rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.pmi-chip-warn {
+  border-color: var(--pmi-warn);
+  background: var(--pmi-warn);
+  color: #1a1204;
+}
+
+.pmi-chip-hold {
+  border-color: var(--pmi-hold);
+  background: var(--pmi-hold);
+  color: #1a0d04;
+}
+
+[data-theme='outdoor'] .pmi-chip-warn,
+[data-theme='outdoor'] .pmi-chip-hold {
+  background: #ffe500;
+  border-color: #ffe500;
+  color: #000000;
+}
+
+.pmi-flag {
+  border: 3px solid var(--pmi-hold);
+  background: var(--pmi-hold);
+  color: #1a0d04;
+  padding: 0.75rem 0.8rem;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+[data-theme='outdoor'] .pmi-flag {
+  background: #ffe500;
+  border-color: #ffe500;
+  color: #000000;
+}
+
+.pmi-stat {
+  min-height: 5.25rem;
+  border: 2px solid var(--pmi-border);
+  border-left-width: 6px;
+  background: var(--pmi-card);
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+}
+
+.pmi-stat-alert {
+  border-left-color: var(--pmi-hold);
+}
+
+.pmi-tally-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border: 2px solid var(--pmi-ink);
+  background: var(--pmi-ink);
+  color: var(--pmi-sheet-text);
+}
+
+.pmi-tally-bar > div {
+  padding: 0.4rem 0.45rem 0.5rem;
+  border-right: 1px solid var(--pmi-rule);
+}
+
+.pmi-tally-bar > div:nth-child(3n) {
+  border-right: 0;
+}
+
+.pmi-tally-bar span {
+  display: block;
+}
+
+.pmi-tally-bar .pmi-tally-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pmi-sheet-muted);
+}
+
+.pmi-tally-bar .pmi-tally-value {
+  margin-top: 0.1rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+[data-theme='outdoor'] .pmi-tally-bar {
+  background: #ffe500;
+  color: #000000;
+  border-color: #ffe500;
+}
+
+[data-theme='outdoor'] .pmi-tally-bar .pmi-tally-label {
+  color: #000000;
+}
+
+.pmi-tally-sheet {
+  border: 2px solid var(--pmi-border);
+  background: var(--pmi-card);
+}
+
+.pmi-tally-head,
+.pmi-tally-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr 0.9fr;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.pmi-tally-head {
+  background: var(--pmi-ink);
+  color: var(--pmi-sheet-text);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+[data-theme='outdoor'] .pmi-tally-head {
+  background: #ffe500;
+  color: #000000;
+}
+
+.pmi-tally-row {
+  width: 100%;
+  min-height: 3.5rem;
+  border: 0;
+  border-top: 1px solid var(--pmi-border);
+  background: transparent;
+  color: inherit;
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  font: inherit;
+}
+
+.pmi-photo-slot {
+  display: flex;
+  min-height: 4.5rem;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px dashed var(--pmi-border);
+  background:
+    linear-gradient(180deg, rgba(18, 22, 27, 0.04), transparent 40%),
+    var(--pmi-card);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  color: inherit;
+}
+
+.pmi-photo-frame {
+  display: flex;
+  height: 3.25rem;
+  width: 3.25rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--pmi-ink);
+  background: #12161b;
+  color: #f4f6f8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.1;
+}
+
+[data-theme='outdoor'] .pmi-photo-frame {
+  background: #000000;
+  border-color: #ffe500;
+  color: #ffe500;
+}
+
+.pmi-tabbar a[aria-current='page'] {
+  box-shadow: inset 0 4px 0 var(--pmi-hold);
+  color: var(--pmi-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

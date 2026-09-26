@@ -9,10 +9,9 @@ import {
   missingMtrMaterials,
   summarizeDashboard,
 } from '../domain/dashboard';
-import { CUSTODY_LABELS } from '../domain/labels';
 import { useApp } from '../state/AppState';
 import { SpecialtyNav } from '../components/SpecialtyNav';
-import { VerificationBadge } from '../components/ui';
+import { CustodyChip, VerificationBadge } from '../components/ui';
 
 type Drill = 'deliveries' | 'received' | 'holds' | 'mtrs' | 'damage' | 'discrepancies';
 
@@ -33,47 +32,49 @@ export function HomePage() {
   ];
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-2xl border-2 border-pmi-border bg-pmi-card p-4" aria-labelledby="project-heading">
-        <h1 id="project-heading" className="text-xs font-bold uppercase tracking-wide text-pmi-muted">
-          PROJECT
+    <div className="space-y-3">
+      <section className="border-2 border-pmi-border border-l-[6px] border-l-pmi-ink bg-pmi-card px-3 py-3" aria-labelledby="project-heading">
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-pmi-muted">Project</p>
+        <h1 id="project-heading" className="mt-1 text-3xl font-black leading-none tracking-tight">
+          {summary.projectName}
         </h1>
-        <p className="mt-1 text-2xl font-black leading-tight">{summary.projectName}</p>
-        <p className="mt-2 text-base">
-          {snapshot.project.atmosProjectNumber} · {snapshot.project.inspectorName}
+        <p className="pmi-code mt-2 text-xl font-bold">{snapshot.project.projectNumber}</p>
+        <p className="mt-1 text-sm font-bold">
+          {snapshot.project.atmosProjectNumber} · CO {snapshot.project.constructionOrderNo}
         </p>
-        <p className="text-sm text-pmi-muted">
-          Project Number {snapshot.project.projectNumber} · Construction Order No. {snapshot.project.constructionOrderNo}
-        </p>
+        <p className="text-sm text-pmi-muted">{snapshot.project.inspectorName}</p>
       </section>
 
       <SpecialtyNav />
 
       <section aria-label="Today">
-        <div className="grid grid-cols-2 gap-3">
-          {tiles.map((tile) => (
-            <button
-              key={tile.id}
-              type="button"
-              onClick={() => setDrill((current) => (current === tile.id ? null : tile.id))}
-              aria-pressed={drill === tile.id}
-              className="min-h-[5.75rem] rounded-2xl border-2 border-pmi-border bg-pmi-card px-3 py-3 text-left"
-            >
-              <span className="block text-xs font-bold uppercase leading-tight tracking-wide">{tile.label}</span>
-              <span className="mt-2 block text-3xl font-black tabular-nums">{tile.value}</span>
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-2">
+          {tiles.map((tile) => {
+            const alert = tile.id === 'holds' || tile.id === 'damage' || tile.id === 'discrepancies' || tile.id === 'mtrs';
+            return (
+              <button
+                key={tile.id}
+                type="button"
+                onClick={() => setDrill((current) => (current === tile.id ? null : tile.id))}
+                aria-pressed={drill === tile.id}
+                className={`pmi-stat ${alert ? 'pmi-stat-alert' : ''}`}
+              >
+                <span className="block text-xs font-black uppercase leading-tight tracking-wide">{tile.label}</span>
+                <span className="pmi-code mt-1 block text-3xl font-black">{tile.value}</span>
+              </button>
+            );
+          })}
         </div>
         {drill ? <DrillList drill={drill} today={today} /> : null}
       </section>
 
       <section aria-labelledby="recent-heading">
-        <h2 id="recent-heading" className="text-sm font-bold uppercase tracking-wide">
+        <h2 id="recent-heading" className="pmi-sheet-title">
           RECENT INSPECTIONS
         </h2>
-        <ul className="mt-2 space-y-2">
+        <ul className="mt-2 space-y-1">
           {summary.recentInspections.map((entry) => (
-            <li key={entry.id} className="rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
+            <li key={entry.id} className="border-2 border-pmi-border bg-pmi-card px-3 py-2">
               <p className="text-base font-semibold">{entry.summary}</p>
               <p className="mt-1 text-sm text-pmi-muted">{formatWhen(entry.createdAt)}</p>
               {entry.verificationStatus ? (
@@ -148,12 +149,12 @@ function DrillList({ drill, today }: { drill: Drill; today: string }) {
   return (
     <ul className="mt-3 space-y-2" aria-label="Matching material">
       {materials.map((material) => (
-        <li key={material.id} className="rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
-          <p className="font-bold">{material.materialCode}</p>
+          <li key={material.id} className="border-2 border-pmi-border bg-pmi-card px-3 py-2">
+          <p className="pmi-code font-bold">{material.materialCode}</p>
           <p className="text-sm">{material.description}</p>
-          <p className="text-sm text-pmi-muted">
-            {CUSTODY_LABELS[material.custodyStatus]}
-            {material.heatNumber ? ` · Heat ${material.heatNumber}` : ''}
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+            <CustodyChip status={material.custodyStatus} />
+            {material.heatNumber ? <span className="pmi-code">Heat {material.heatNumber}</span> : null}
           </p>
           <div className="mt-2">
             <VerificationBadge status={material.verificationStatus} />

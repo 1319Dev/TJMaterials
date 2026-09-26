@@ -16,7 +16,7 @@ import {
   GradeSelect,
   PurchaseOrderSelect,
 } from '../components/forms';
-import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
+import { SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function FittingListPage() {
   const { snapshot } = useApp();
@@ -36,7 +36,7 @@ export function FittingListPage() {
         {snapshot.fittings.map((fitting) => (
           <li key={fitting.id}>
             <Link to={`/fittings/${fitting.id}`} className="block rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
-              <p className="text-lg font-black">{fitting.materialCode}</p>
+              <p className="pmi-code text-lg font-black">{fitting.materialCode}</p>
               <p>{fitting.description}</p>
               <p className="text-sm text-pmi-muted">
                 {FITTING_TYPE_LABELS[fitting.fittingType]}
@@ -106,6 +106,7 @@ function FittingForm({ fittingId }: { fittingId: string }) {
         </p>
       ) : null}
       <GradeAlert expected={active.expectedGrade} received={active.grade} />
+      <SheetHeader>MARKINGS</SheetHeader>
       <Field label="Fitting type">
         <select
           className={controlClass}
@@ -150,12 +151,14 @@ function FittingForm({ fittingId }: { fittingId: string }) {
         <input className={controlClass} value={active.manufacturer} onChange={(event) => update({ manufacturer: event.target.value })} />
       </Field>
       <Field label="Heat number">
-        <input className={controlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
+        <input className={codeControlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
       </Field>
       <Field label="Qty">
         <input className={controlClass} inputMode="decimal" value={active.quantity} onChange={(event) => update({ quantity: event.target.value })} />
       </Field>
+      <SheetHeader>CONDITION</SheetHeader>
       <CustodySelect value={active.custodyStatus} onChange={(custodyStatus) => update({ custodyStatus })} />
+      <SheetHeader>DELIVERY</SheetHeader>
       <DeliverySelect required={!existing} deliveries={snapshot.deliveries} value={active.deliveryId} onChange={(deliveryId) => update({ deliveryId })} />
       <PurchaseOrderSelect
         purchaseOrders={snapshot.purchaseOrders}

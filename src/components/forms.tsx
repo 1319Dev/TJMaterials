@@ -60,7 +60,7 @@ export function GradeAlert({ expected, received }: { expected: string; received:
     <p
       role="alert"
       data-testid="grade-mismatch"
-      className="rounded-2xl border-2 border-pmi-border bg-pmi-card p-3 text-base font-black leading-snug"
+      className="pmi-flag"
     >
       {message}
     </p>

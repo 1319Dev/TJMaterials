@@ -32,9 +32,10 @@ export interface ReceiveLineInput {
 }
 
 export interface PhotoStubInput {
-  role: 'packing_slip' | 'bol' | 'material';
+  role: 'packing_slip' | 'bol' | 'material' | 'damage' | 'other';
   permissionStatus: Exclude<GpsStatus, 'not_provided'>;
   message: string;
+  caption?: string;
 }
 
 export interface GpsInput {
@@ -279,7 +280,7 @@ export function createReceipt(
     subjectType: 'delivery',
     subjectId: delivery.id,
     role: stub.role,
-    caption: stub.message,
+    caption: [stub.caption, stub.message].filter(Boolean).join(' — '),
     permissionStatus: stub.permissionStatus,
     byteSize: 0,
     capturedAt: null,

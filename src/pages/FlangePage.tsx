@@ -13,7 +13,7 @@ import {
   GradeSelect,
   PurchaseOrderSelect,
 } from '../components/forms';
-import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
+import { SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function FlangeListPage() {
   const { snapshot } = useApp();
@@ -33,7 +33,7 @@ export function FlangeListPage() {
         {snapshot.flanges.map((flange) => (
           <li key={flange.id}>
             <Link to={`/flanges/${flange.id}`} className="block rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
-              <p className="text-lg font-black">{flange.materialCode}</p>
+              <p className="pmi-code text-lg font-black">{flange.materialCode}</p>
               <p>{flange.description}</p>
               <p className="text-sm text-pmi-muted">
                 {FLANGE_TYPE_LABELS[flange.flangeType]}
@@ -102,6 +102,7 @@ function FlangeForm({ flangeId }: { flangeId: string }) {
         </p>
       ) : null}
       <GradeAlert expected={active.expectedGrade} received={active.grade} />
+      <SheetHeader>MARKINGS</SheetHeader>
       <Field label="Flange type">
         <select
           className={controlClass}
@@ -150,15 +151,17 @@ function FlangeForm({ flangeId }: { flangeId: string }) {
         <input className={controlClass} value={active.manufacturer} onChange={(event) => update({ manufacturer: event.target.value })} />
       </Field>
       <Field label="Heat number">
-        <input className={controlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
+        <input className={codeControlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
       </Field>
       <Field label="Serial / lot">
-        <input className={controlClass} {...codeFieldProps} value={active.serialOrLot} onChange={(event) => update({ serialOrLot: event.target.value })} />
+        <input className={codeControlClass} {...codeFieldProps} value={active.serialOrLot} onChange={(event) => update({ serialOrLot: event.target.value })} />
       </Field>
       <Field label="Qty">
-        <input className={controlClass} inputMode="decimal" value={active.quantity} onChange={(event) => update({ quantity: event.target.value })} />
+        <input className={codeControlClass} inputMode="decimal" value={active.quantity} onChange={(event) => update({ quantity: event.target.value })} />
       </Field>
+      <SheetHeader>CONDITION</SheetHeader>
       <CustodySelect value={active.custodyStatus} onChange={(custodyStatus) => update({ custodyStatus })} />
+      <SheetHeader>DELIVERY</SheetHeader>
       <DeliverySelect required={!existing} deliveries={snapshot.deliveries} value={active.deliveryId} onChange={(deliveryId) => update({ deliveryId })} />
       <PurchaseOrderSelect
         purchaseOrders={snapshot.purchaseOrders}

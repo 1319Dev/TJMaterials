@@ -13,7 +13,7 @@ import {
   GradeSelect,
   PurchaseOrderSelect,
 } from '../components/forms';
-import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
+import { SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function ValveListPage() {
   const { snapshot } = useApp();
@@ -33,7 +33,7 @@ export function ValveListPage() {
         {snapshot.valves.map((valve) => (
           <li key={valve.id}>
             <Link to={`/valves/${valve.id}`} className="block rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
-              <p className="text-lg font-black">{valve.materialCode}</p>
+              <p className="pmi-code text-lg font-black">{valve.materialCode}</p>
               <p>{valve.description}</p>
               <p className="text-sm text-pmi-muted">
                 {VALVE_TYPE_LABELS[valve.valveType]}
@@ -109,6 +109,7 @@ function ValveForm({ valveId }: { valveId: string }) {
         </p>
       ) : null}
       <GradeAlert expected={active.expectedGrade} received={active.grade} />
+      <SheetHeader>MARKINGS</SheetHeader>
       <Field label="Valve type">
         <select
           className={controlClass}
@@ -157,13 +158,15 @@ function ValveForm({ valveId }: { valveId: string }) {
         <input className={controlClass} value={active.modelNumber} onChange={(event) => update({ modelNumber: event.target.value })} />
       </Field>
       <Field label="Heat number">
-        <input className={controlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
+        <input className={codeControlClass} {...codeFieldProps} value={active.heatNumber} onChange={(event) => update({ heatNumber: event.target.value })} />
       </Field>
       <Field label="Serial number">
-        <input className={controlClass} {...codeFieldProps} value={active.serialNumber} onChange={(event) => update({ serialNumber: event.target.value })} />
+        <input className={codeControlClass} {...codeFieldProps} value={active.serialNumber} onChange={(event) => update({ serialNumber: event.target.value })} />
       </Field>
-      <fieldset className="space-y-3 rounded-2xl border-2 border-pmi-border p-3">
-        <legend className="px-1 text-sm font-bold uppercase tracking-wide">Actuator</legend>
+      <fieldset className="space-y-3 border-2 border-pmi-border p-3">
+        <legend className="px-1">
+          <span className="pmi-sheet-title">ACTUATOR</span>
+        </legend>
         <p className="text-sm font-bold">{linked ? 'Actuator linked' : 'No actuator linked'}</p>
         <Field label="Actuator type">
           <select
@@ -191,7 +194,7 @@ function ValveForm({ valveId }: { valveId: string }) {
         </Field>
         <Field label="Actuator serial">
           <input
-            className={controlClass}
+            className={codeControlClass}
             {...codeFieldProps}
             value={active.actuatorSerial}
             onChange={(event) => update({ actuatorSerial: event.target.value })}
@@ -199,9 +202,11 @@ function ValveForm({ valveId }: { valveId: string }) {
         </Field>
       </fieldset>
       <Field label="Qty">
-        <input className={controlClass} inputMode="decimal" value={active.quantity} onChange={(event) => update({ quantity: event.target.value })} />
+        <input className={codeControlClass} inputMode="decimal" value={active.quantity} onChange={(event) => update({ quantity: event.target.value })} />
       </Field>
+      <SheetHeader>CONDITION</SheetHeader>
       <CustodySelect value={active.custodyStatus} onChange={(custodyStatus) => update({ custodyStatus })} />
+      <SheetHeader>DELIVERY</SheetHeader>
       <DeliverySelect required={!existing} deliveries={snapshot.deliveries} value={active.deliveryId} onChange={(deliveryId) => update({ deliveryId })} />
       <PurchaseOrderSelect
         purchaseOrders={snapshot.purchaseOrders}
