@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { InstallGuide } from '../components/InstallGuide';
+import { SpecialtyNav } from '../components/SpecialtyNav';
 import { formatWhen } from '../domain/dates';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { SYNC_LABEL } from '../domain/sync';
@@ -42,6 +43,13 @@ export function MorePage() {
         <Link to="/mtr-request" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
           MTR request
         </Link>
+      </section>
+
+      <section className="space-y-2" aria-labelledby="tally-links">
+        <h2 id="tally-links" className="text-sm font-bold uppercase tracking-wide">
+          Tally and components
+        </h2>
+        <SpecialtyNav />
       </section>
 
       <section className="space-y-2" aria-labelledby="appearance">

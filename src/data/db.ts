@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { buildDemoData } from '../domain/demo-data';
 import { localIsoDate } from '../domain/dates';
+import { ensurePhase2 } from '../domain/hydrate';
 import type { AppSnapshot } from '../domain/types';
 
 const DB_NAME = 'pipeline-material-inspector';
@@ -47,7 +48,11 @@ async function withDb<T>(fn: (database: IDBPDatabase<PmiSchema>) => Promise<T>):
 export async function loadSnapshot(): Promise<AppSnapshot> {
   return withDb(async (database) => {
     const existing = await database.get('snapshot', SNAPSHOT_KEY);
-    if (existing) return existing;
+    if (existing) {
+      const normalized = ensurePhase2(existing);
+      if (normalized !== existing) await database.put('snapshot', normalized, SNAPSHOT_KEY);
+      return normalized;
+    }
     const seeded = buildDemoData(localIsoDate());
     await database.put('snapshot', seeded, SNAPSHOT_KEY);
     return seeded;

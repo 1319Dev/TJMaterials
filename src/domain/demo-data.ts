@@ -2,17 +2,23 @@ import { addIsoDays } from './dates';
 import type {
   AppSnapshot,
   AuditLogRecord,
+  CustodyStatus,
   DamageReportRecord,
   DeliveryRecord,
   DiscrepancyRecord,
   DocumentRecord,
+  FittingRecord,
+  FlangeRecord,
   HoldRecord,
   MaterialRecord,
   MtrLinkRecord,
   MtrRecord,
   PhotoRecord,
+  PipeJointRecord,
   ProjectRecord,
   PurchaseOrderRecord,
+  ValveRecord,
+  VerificationStatus,
 } from './types';
 
 function id(n: number): string {
@@ -332,6 +338,25 @@ export function buildDemoData(today: string): AppSnapshot {
       serial: 'VB-600-3402',
       model: 'CB-600-36',
     }),
+    material({
+      n: 23,
+      code: 'PMI-FIT-000004',
+      category: 'fitting',
+      description: '36" x 24" reducer',
+      grade: 'WPHY 70',
+      specification: 'ASTM A860 / MSS SP-75',
+      manufacturer: 'Redcedar Fittings Co.',
+      heat: 'W70-4412',
+      joint: '',
+      po: 3,
+      delivery: 6,
+      custody: 'received',
+      verification: 'review_required',
+      receivedOn: today,
+      diameter: '36 x 24',
+      notes:
+        'Expected grade WPHY 52. Received stamp WPHY 70. GRADE DOES NOT MATCH EXPECTED MATERIAL — ENGINEERING/OPERATOR REVIEW REQUIRED.',
+    }),
   ];
 
   const mtrs: MtrRecord[] = [
@@ -438,6 +463,18 @@ export function buildDemoData(today: string): AppSnapshot {
       verificationStatus: 'review_required',
       openedAt: `${today}T15:21:00.000Z`,
     },
+    {
+      id: id(64),
+      projectId: project.id,
+      materialId: id(23),
+      deliveryId: id(6),
+      title: 'Grade does not match expected material',
+      description:
+        'PMI-FIT-000004 expected grade WPHY 52. Received grade WPHY 70. GRADE DOES NOT MATCH EXPECTED MATERIAL — ENGINEERING/OPERATOR REVIEW REQUIRED.',
+      status: 'open',
+      verificationStatus: 'review_required',
+      openedAt: `${today}T15:28:00.000Z`,
+    },
   ];
 
   const auditLogs: AuditLogRecord[] = [
@@ -446,6 +483,55 @@ export function buildDemoData(today: string): AppSnapshot {
     audit(72, 'inspect', 21, 'Serial check PMI-VLV-000001 VB-600-3391', 'not_verified', `${today}T15:12:00.000Z`),
     audit(73, 'inspect', 16, 'Paperwork check PMI-FIT-000002', 'missing_documentation', `${today}T15:05:00.000Z`),
     audit(74, 'receive', 10, 'Received PMI-PIPE-000001 heat H52-18440', 'review_required', `${today}T14:40:00.000Z`),
+    audit(
+      75,
+      'inspect',
+      23,
+      'Received fitting PMI-FIT-000004. GRADE DOES NOT MATCH EXPECTED MATERIAL — ENGINEERING/OPERATOR REVIEW REQUIRED.',
+      'review_required',
+      `${today}T15:28:00.000Z`,
+    ),
+  ];
+
+  const pipeJoints: PipeJointRecord[] = [
+    pipeJoint(80, 10, 'PMI-PIPE-000001', 'J-1041', 'H52-18440', 40.25, 40, 'received', 'review_required', 6),
+    pipeJoint(81, 11, 'PMI-PIPE-000002', 'J-1042', 'H52-18440', 39.75, 40, 'received', 'review_required', 6),
+    pipeJoint(82, 12, 'PMI-PIPE-000003', 'J-1043', 'H52-18441', 41.125, 40, 'received', 'not_provided', 6, 'Mill test report was not in the package.'),
+    pipeJoint(83, 13, 'PMI-PIPE-000004', 'J-1108', 'H52-19002', 38.5, 40, 'damaged', 'review_required', 6, 'Dent noted at receiving.'),
+    pipeJoint(84, 14, 'PMI-PIPE-000005', 'J-1110', 'H52-19088', null, 40, 'expected', 'not_provided', 7, 'Listed on the expected bill of lading. Not on the yard.'),
+  ];
+
+  const fittings: FittingRecord[] = [
+    fittingRow(85, 15, 'PMI-FIT-000001', 'elbow', '36" WPHY52 90° elbow', 90, 'WPHY 52', 'WPHY 52', 'W52-7710', 'received', 'review_required', 6, '36'),
+    fittingRow(86, 16, 'PMI-FIT-000002', 'tee', '36" WPHY52 tee', null, 'WPHY 52', 'WPHY 52', 'W52-7718', 'received', 'missing_documentation', 6, '36', 'MTR missing from the shipment file.'),
+    fittingRow(87, 17, 'PMI-FIT-000003', 'elbow', '36" WPHY52 45° elbow', 45, 'WPHY 52', 'WPHY 52', 'W52-7801', 'expected', 'not_provided', 8, '36'),
+    fittingRow(
+      88,
+      23,
+      'PMI-FIT-000004',
+      'reducer',
+      '36" x 24" reducer',
+      null,
+      'WPHY 70',
+      'WPHY 52',
+      'W70-4412',
+      'received',
+      'review_required',
+      6,
+      '36 x 24',
+      'Expected grade WPHY 52. Received stamp WPHY 70. GRADE DOES NOT MATCH EXPECTED MATERIAL — ENGINEERING/OPERATOR REVIEW REQUIRED.',
+    ),
+  ];
+
+  const flanges: FlangeRecord[] = [
+    flangeRow(89, 18, 'PMI-FLG-000001', '36" Class 600 WN flange', 'F600-2201', 'received', 'difference_found', 6, 'Stamp heat F600-2201. MTR heat reads F600-2209.'),
+    flangeRow(90, 19, 'PMI-FLG-000002', '36" Class 600 WN flange', 'F600-2201', 'received', 'review_required', 6),
+    flangeRow(91, 20, 'PMI-FLG-000003', '36" Class 600 WN flange', 'F600-2290', 'expected', 'not_provided', 8),
+  ];
+
+  const valves: ValveRecord[] = [
+    valveRow(92, 21, 'PMI-VLV-000001', 'V52-088', 'VB-600-3391', 'on_hold', 'not_provided', 6, true, 'Hold: MTR not provided.'),
+    valveRow(93, 22, 'PMI-VLV-000002', 'V52-104', 'VB-600-3402', 'expected', 'not_provided', 8, false),
   ];
 
   return {
@@ -453,6 +539,10 @@ export function buildDemoData(today: string): AppSnapshot {
     purchaseOrders,
     deliveries,
     materials,
+    pipeJoints,
+    fittings,
+    flanges,
+    valves,
     mtrs,
     mtrLinks,
     documents,
@@ -504,6 +594,7 @@ export function buildDemoData(today: string): AppSnapshot {
     ansi?: string;
     serial?: string;
     model?: string;
+    diameter?: string;
   }): MaterialRecord {
     return {
       id: id(input.n),
@@ -513,7 +604,7 @@ export function buildDemoData(today: string): AppSnapshot {
       materialCode: input.code,
       category: input.category,
       description: input.description,
-      diameter: '36',
+      diameter: input.diameter ?? '36',
       wallThickness: input.wall ?? '0.500',
       grade: input.grade,
       specification: input.specification,
@@ -594,6 +685,156 @@ export function buildDemoData(today: string): AppSnapshot {
       summary,
       verificationStatus,
       createdAt,
+    };
+  }
+
+  function pipeJoint(
+    n: number,
+    materialN: number,
+    materialCode: string,
+    jointNumber: string,
+    heatNumber: string,
+    lengthFt: number | null,
+    expectedLengthFt: number | null,
+    custodyStatus: CustodyStatus,
+    verificationStatus: VerificationStatus,
+    deliveryN: number,
+    notes = '',
+  ): PipeJointRecord {
+    return {
+      id: id(n),
+      projectId: project.id,
+      materialId: id(materialN),
+      deliveryId: id(deliveryN),
+      materialCode,
+      jointNumber,
+      heatNumber,
+      manufacturer: 'Heartland Steel Mills',
+      diameter: '36',
+      wallThickness: '0.500',
+      grade: 'X52',
+      specification: 'API 5L PSL2',
+      lengthFt,
+      expectedLengthFt,
+      coating: '',
+      custodyStatus,
+      verificationStatus,
+      notes,
+    };
+  }
+
+  function fittingRow(
+    n: number,
+    materialN: number,
+    materialCode: string,
+    fittingType: FittingRecord['fittingType'],
+    description: string,
+    angleDeg: number | null,
+    grade: string,
+    expectedGrade: string,
+    heatNumber: string,
+    custodyStatus: CustodyStatus,
+    verificationStatus: VerificationStatus,
+    deliveryN: number,
+    diameter: string,
+    notes = '',
+  ): FittingRecord {
+    return {
+      id: id(n),
+      projectId: project.id,
+      materialId: id(materialN),
+      deliveryId: id(deliveryN),
+      purchaseOrderId: id(3),
+      materialCode,
+      fittingType,
+      description,
+      diameter,
+      wallThickness: '0.500',
+      grade,
+      expectedGrade,
+      specification: 'ASTM A860 / MSS SP-75',
+      manufacturer: 'Redcedar Fittings Co.',
+      heatNumber,
+      angleDeg,
+      quantity: 1,
+      custodyStatus,
+      verificationStatus,
+      notes,
+    };
+  }
+
+  function flangeRow(
+    n: number,
+    materialN: number,
+    materialCode: string,
+    description: string,
+    heatNumber: string,
+    custodyStatus: CustodyStatus,
+    verificationStatus: VerificationStatus,
+    deliveryN: number,
+    notes = '',
+  ): FlangeRecord {
+    return {
+      id: id(n),
+      projectId: project.id,
+      materialId: id(materialN),
+      deliveryId: id(deliveryN),
+      purchaseOrderId: id(4),
+      materialCode,
+      flangeType: 'wn',
+      description,
+      diameter: '36',
+      classRating: '600',
+      grade: 'A694 F52',
+      expectedGrade: 'A694 F52',
+      facing: '',
+      manufacturer: 'Plainspoke Flange',
+      heatNumber,
+      serialOrLot: '',
+      quantity: 1,
+      custodyStatus,
+      verificationStatus,
+      notes,
+    };
+  }
+
+  function valveRow(
+    n: number,
+    materialN: number,
+    materialCode: string,
+    heatNumber: string,
+    serialNumber: string,
+    custodyStatus: CustodyStatus,
+    verificationStatus: VerificationStatus,
+    deliveryN: number,
+    linkActuator: boolean,
+    notes = '',
+  ): ValveRecord {
+    return {
+      id: id(n),
+      projectId: project.id,
+      materialId: id(materialN),
+      deliveryId: id(deliveryN),
+      purchaseOrderId: id(5),
+      materialCode,
+      valveType: 'ball',
+      description: '36" Class 600 trunnion ball valve',
+      diameter: '36',
+      classRating: '600',
+      grade: 'WCB',
+      expectedGrade: 'WCB',
+      manufacturer: 'Calder Valve Works',
+      modelNumber: 'CB-600-36',
+      heatNumber,
+      serialNumber,
+      actuatorType: linkActuator ? 'pneumatic' : '',
+      actuatorManufacturer: linkActuator ? 'Fieldline Actuators' : '',
+      actuatorModel: linkActuator ? 'PA-36-600' : '',
+      actuatorSerial: linkActuator ? 'ACT-88321' : '',
+      quantity: 1,
+      custodyStatus,
+      verificationStatus,
+      notes,
     };
   }
 }

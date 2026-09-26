@@ -21,12 +21,12 @@ describe('demo dashboard', () => {
     const summary = summarizeDashboard(demo, today);
     expect(summary.projectName).toBe('Guest Demo Spread');
     expect(summary.todaysDeliveries).toBe(2);
-    expect(summary.materialReceivedToday).toBe(9);
+    expect(summary.materialReceivedToday).toBe(10);
     expect(summary.materialOnHold).toBe(1);
     expect(summary.missingMtrs).toBe(3);
     expect(summary.damagedMaterial).toBe(1);
-    expect(summary.openDiscrepancies).toBe(2);
-    expect(summary.recentInspections).toHaveLength(5);
+    expect(summary.openDiscrepancies).toBe(3);
+    expect(summary.recentInspections).toHaveLength(6);
     expect(summary.recentInspections[0]?.verificationStatus).toBe('difference_found');
   });
 
@@ -60,7 +60,7 @@ describe('material ids', () => {
   test('increments within a category only', () => {
     const existing = demo.materials.map((material) => material.materialCode);
     expect(nextMaterialCode('pipe', existing)).toBe('PMI-PIPE-000006');
-    expect(nextMaterialCode('fitting', existing)).toBe('PMI-FIT-000004');
+    expect(nextMaterialCode('fitting', existing)).toBe('PMI-FIT-000005');
     expect(nextMaterialCode('flange', ['PMI-PIPE-000009'])).toBe('PMI-FLG-000001');
   });
 });
@@ -112,6 +112,7 @@ describe('receiving', () => {
     expect(result.snapshot.auditLogs.slice(0, before)).toEqual(demo.auditLogs);
     expect(result.snapshot.auditLogs.length).toBe(before + 1);
     expect(result.snapshot.queue.some((item) => item.status === 'pending')).toBe(true);
+    expect(result.snapshot.pipeJoints).toHaveLength(demo.pipeJoints.length);
   });
 
   test('rejects a delivery with no paperwork instead of inventing a number', () => {

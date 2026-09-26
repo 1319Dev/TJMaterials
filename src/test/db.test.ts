@@ -1,6 +1,7 @@
 import { beforeEach, expect, test } from 'vitest';
 import { buildDemoData } from '../domain/demo-data';
 import { deleteBlob, loadSnapshot, readBlob, saveBlob, saveSnapshot } from '../data/db';
+import type { AppSnapshot } from '../domain/types';
 
 beforeEach(async () => {
   await new Promise<void>((resolve, reject) => {
@@ -20,6 +21,23 @@ test('seeds guest data in IndexedDB and keeps later edits', async () => {
   await saveSnapshot(renamed);
   const second = await loadSnapshot();
   expect(second.project.name).toBe('Yard copy');
+});
+
+test('backfills pipe joints and component rows when a phase 1 snapshot is opened', async () => {
+  const phase1 = buildDemoData('2026-09-26');
+  const legacy = {
+    ...phase1,
+    materials: phase1.materials.filter((material) => material.materialCode !== 'PMI-FIT-000004'),
+  } as AppSnapshot;
+  delete (legacy as Partial<AppSnapshot>).pipeJoints;
+  delete (legacy as Partial<AppSnapshot>).fittings;
+  delete (legacy as Partial<AppSnapshot>).flanges;
+  delete (legacy as Partial<AppSnapshot>).valves;
+  await saveSnapshot(legacy);
+  const loaded = await loadSnapshot();
+  expect(loaded.pipeJoints.some((joint) => joint.jointNumber === 'J-1041' && joint.lengthFt === 40.25)).toBe(true);
+  expect(loaded.fittings.some((fitting) => fitting.grade === 'WPHY 70' && fitting.expectedGrade === 'WPHY 52')).toBe(true);
+  expect(loaded.valves.some((valve) => valve.actuatorSerial === 'ACT-88321')).toBe(true);
 });
 
 test('stores and removes an attachment blob without changing its size', async () => {

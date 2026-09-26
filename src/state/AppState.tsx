@@ -3,6 +3,15 @@ import { deleteBlob, loadSnapshot, readBlob, saveBlob, saveSnapshot } from '../d
 import { countPending, describeSync, lastAckAt, remoteConfigured } from '../domain/sync';
 import { createReceipt, type ReceiveInput, type ReceiveResult } from '../domain/receive';
 import { addDocument, removeDocument, saveMtrRequest, updateProject } from '../domain/records';
+import {
+  saveFitting as writeFitting,
+  saveFlange as writeFlange,
+  saveValve as writeValve,
+  type FittingInput,
+  type FlangeInput,
+  type ValveInput,
+} from '../domain/specialty';
+import { savePipeJoint as writePipeJoint, type PipeJointInput } from '../domain/tally';
 import type { AppSnapshot, MtrRequestLine, PermissionNote, ProjectRecord, ThemeMode } from '../domain/types';
 
 interface AppContextValue {
@@ -13,6 +22,10 @@ interface AppContextValue {
   syncLabel: string;
   syncDetail: string;
   saveReceipt: (input: ReceiveInput) => ReceiveResult | null;
+  savePipeJoint: (input: PipeJointInput) => string[];
+  saveFitting: (input: FittingInput) => { errors: string[]; id?: string };
+  saveFlange: (input: FlangeInput) => { errors: string[]; id?: string };
+  saveValve: (input: ValveInput) => { errors: string[]; id?: string };
   saveProject: (project: ProjectRecord) => string[];
   attachDocument: (file: File, subjectType: string, subjectId: string) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
@@ -127,6 +140,30 @@ export function AppProvider({
         });
         if (result.errors.length === 0) commit(result.snapshot);
         return result;
+      },
+      savePipeJoint(input) {
+        if (!snapshot) return ['Records are not loaded.'];
+        const result = writePipeJoint(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return result.errors;
+      },
+      saveFitting(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        const result = writeFitting(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
+      },
+      saveFlange(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        const result = writeFlange(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
+      },
+      saveValve(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        const result = writeValve(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
       },
       saveProject(project) {
         if (!snapshot) return ['Records are not loaded.'];

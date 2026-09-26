@@ -8,6 +8,14 @@ export type VerificationStatus =
 
 export type MaterialCategory = 'pipe' | 'fitting' | 'flange' | 'valve' | 'other';
 
+export type FittingType = 'elbow' | 'tee' | 'reducer' | 'cap' | 'other';
+
+export type FlangeType = 'wn' | 'so' | 'blind' | 'lap_joint' | 'threaded' | 'other';
+
+export type ValveType = 'ball' | 'gate' | 'plug' | 'check' | 'other';
+
+export type ActuatorType = '' | 'electric' | 'pneumatic' | 'hydraulic' | 'manual_gear' | 'other';
+
 export type CustodyStatus = 'expected' | 'received' | 'on_hold' | 'damaged' | 'installed';
 
 export type ThemeMode = 'light' | 'dark' | 'outdoor';
@@ -85,6 +93,100 @@ export interface MaterialRecord {
   custodyStatus: CustodyStatus;
   verificationStatus: VerificationStatus;
   receivedOn: string | null;
+  notes: string;
+}
+
+export interface PipeJointRecord {
+  id: string;
+  projectId: string;
+  materialId: string | null;
+  deliveryId: string | null;
+  materialCode: string;
+  jointNumber: string;
+  heatNumber: string;
+  manufacturer: string;
+  diameter: string;
+  wallThickness: string;
+  grade: string;
+  specification: string;
+  lengthFt: number | null;
+  expectedLengthFt: number | null;
+  coating: string;
+  custodyStatus: CustodyStatus;
+  verificationStatus: VerificationStatus;
+  notes: string;
+}
+
+export interface FittingRecord {
+  id: string;
+  projectId: string;
+  materialId: string | null;
+  deliveryId: string | null;
+  purchaseOrderId: string | null;
+  materialCode: string;
+  fittingType: FittingType;
+  description: string;
+  diameter: string;
+  wallThickness: string;
+  grade: string;
+  expectedGrade: string;
+  specification: string;
+  manufacturer: string;
+  heatNumber: string;
+  angleDeg: number | null;
+  quantity: number;
+  custodyStatus: CustodyStatus;
+  verificationStatus: VerificationStatus;
+  notes: string;
+}
+
+export interface FlangeRecord {
+  id: string;
+  projectId: string;
+  materialId: string | null;
+  deliveryId: string | null;
+  purchaseOrderId: string | null;
+  materialCode: string;
+  flangeType: FlangeType;
+  description: string;
+  diameter: string;
+  classRating: string;
+  grade: string;
+  expectedGrade: string;
+  facing: string;
+  manufacturer: string;
+  heatNumber: string;
+  serialOrLot: string;
+  quantity: number;
+  custodyStatus: CustodyStatus;
+  verificationStatus: VerificationStatus;
+  notes: string;
+}
+
+export interface ValveRecord {
+  id: string;
+  projectId: string;
+  materialId: string | null;
+  deliveryId: string | null;
+  purchaseOrderId: string | null;
+  materialCode: string;
+  valveType: ValveType;
+  description: string;
+  diameter: string;
+  classRating: string;
+  grade: string;
+  expectedGrade: string;
+  manufacturer: string;
+  modelNumber: string;
+  heatNumber: string;
+  serialNumber: string;
+  actuatorType: ActuatorType;
+  actuatorManufacturer: string;
+  actuatorModel: string;
+  actuatorSerial: string;
+  quantity: number;
+  custodyStatus: CustodyStatus;
+  verificationStatus: VerificationStatus;
   notes: string;
 }
 
@@ -239,6 +341,10 @@ export interface AppSnapshot {
   purchaseOrders: PurchaseOrderRecord[];
   deliveries: DeliveryRecord[];
   materials: MaterialRecord[];
+  pipeJoints: PipeJointRecord[];
+  fittings: FittingRecord[];
+  flanges: FlangeRecord[];
+  valves: ValveRecord[];
   mtrs: MtrRecord[];
   mtrLinks: MtrLinkRecord[];
   documents: DocumentRecord[];

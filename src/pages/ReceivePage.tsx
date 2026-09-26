@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { localIsoDate } from '../domain/dates';
-import { nextMaterialCode } from '../domain/ids';
+import { collectMaterialCodes, nextMaterialCode } from '../domain/ids';
 import { CATEGORY_LABELS } from '../domain/labels';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { emptyReceiveLine, receiveDefaults, type PhotoStubInput, type ReceiveInput, type ReceiveLineInput } from '../domain/receive';
 import type { MaterialCategory } from '../domain/types';
 import { useApp } from '../state/AppState';
+import { SpecialtyNav } from '../components/SpecialtyNav';
 import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function ReceivePage() {
@@ -19,7 +20,7 @@ export function ReceivePage() {
   const active = form ?? (snapshot ? receiveDefaults(snapshot, today) : null);
   const previewCodes = useMemo(() => {
     if (!snapshot || !active) return [];
-    const codes = snapshot.materials.map((material) => material.materialCode);
+    const codes = collectMaterialCodes(snapshot);
     const assigned: string[] = [];
     for (const line of active.lines) {
       const code = nextMaterialCode(line.category, [...codes, ...assigned]);
@@ -107,6 +108,7 @@ export function ReceivePage() {
           Saved on this device as REVIEW REQUIRED. Heat numbers, photos, and coordinates are stored only when you enter them.
         </p>
       </div>
+      <SpecialtyNav />
 
       {errors.length > 0 ? (
         <ul role="alert" className="space-y-1 rounded-2xl border-2 border-pmi-border p-3">

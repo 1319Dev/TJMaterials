@@ -11,6 +11,7 @@ import {
 } from '../domain/dashboard';
 import { CUSTODY_LABELS } from '../domain/labels';
 import { useApp } from '../state/AppState';
+import { SpecialtyNav } from '../components/SpecialtyNav';
 import { VerificationBadge } from '../components/ui';
 
 type Drill = 'deliveries' | 'received' | 'holds' | 'mtrs' | 'damage' | 'discrepancies';
@@ -45,6 +46,8 @@ export function HomePage() {
           Project Number {snapshot.project.projectNumber} · Construction Order No. {snapshot.project.constructionOrderNo}
         </p>
       </section>
+
+      <SpecialtyNav />
 
       <section aria-label="Today">
         <div className="grid grid-cols-2 gap-3">

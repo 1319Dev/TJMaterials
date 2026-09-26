@@ -7,6 +7,10 @@ import { MtrRequestPage } from './pages/MtrRequestPage';
 import { ProjectPage } from './pages/ProjectPage';
 import { ReceivePage } from './pages/ReceivePage';
 import { SearchPage } from './pages/SearchPage';
+import { FittingFormPage, FittingListPage } from './pages/FittingPage';
+import { FlangeFormPage, FlangeListPage } from './pages/FlangePage';
+import { TallyPage } from './pages/TallyPage';
+import { ValveFormPage, ValveListPage } from './pages/ValvePage';
 
 export function appBasename(): string {
   const base = import.meta.env.BASE_URL || '/';
@@ -20,6 +24,13 @@ export function AppRoutes() {
       <Route element={<Shell />}>
         <Route index element={<HomePage />} />
         <Route path="receive" element={<ReceivePage />} />
+        <Route path="tally" element={<TallyPage />} />
+        <Route path="fittings" element={<FittingListPage />} />
+        <Route path="fittings/:fittingId" element={<FittingFormPage />} />
+        <Route path="flanges" element={<FlangeListPage />} />
+        <Route path="flanges/:flangeId" element={<FlangeFormPage />} />
+        <Route path="valves" element={<ValveListPage />} />
+        <Route path="valves/:valveId" element={<ValveFormPage />} />
         <Route path="inventory" element={<InventoryPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="more" element={<MorePage />} />
