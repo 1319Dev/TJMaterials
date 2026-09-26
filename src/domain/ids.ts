@@ -1,5 +1,21 @@
 import type { MaterialCategory } from './types';
 
+export function collectMaterialCodes(snapshot: {
+  materials: readonly { materialCode: string }[];
+  pipeJoints?: readonly { materialCode: string }[];
+  fittings?: readonly { materialCode: string }[];
+  flanges?: readonly { materialCode: string }[];
+  valves?: readonly { materialCode: string }[];
+}): string[] {
+  return [
+    ...snapshot.materials.map((item) => item.materialCode),
+    ...(snapshot.pipeJoints ?? []).map((item) => item.materialCode),
+    ...(snapshot.fittings ?? []).map((item) => item.materialCode),
+    ...(snapshot.flanges ?? []).map((item) => item.materialCode),
+    ...(snapshot.valves ?? []).map((item) => item.materialCode),
+  ];
+}
+
 const CATEGORY_PREFIX: Record<MaterialCategory, string> = {
   pipe: 'PIPE',
   fitting: 'FIT',

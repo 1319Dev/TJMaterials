@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { InstallGuide } from '../components/InstallGuide';
+import { SpecialtyNav } from '../components/SpecialtyNav';
 import { formatWhen } from '../domain/dates';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { SYNC_LABEL } from '../domain/sync';
@@ -13,7 +14,7 @@ const themes: Array<{ id: ThemeMode; label: string }> = [
 ];
 
 export function MorePage() {
-  const { snapshot, setTheme, recordPermission, syncLabel, syncDetail } = useApp();
+  const { snapshot, setTheme, recordPermission, syncLabel, syncDetail, loadSampleProject, leaveSampleProject } = useApp();
   if (!snapshot) return null;
 
   async function onCamera() {
@@ -29,7 +30,6 @@ export function MorePage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-black">More</h1>
-      <p>Guest mode is on. Sign-in is not required, and Phase 1 does not collect a password.</p>
       <InstallGuide />
 
       <section className="space-y-2" aria-labelledby="setup-links">
@@ -42,6 +42,13 @@ export function MorePage() {
         <Link to="/mtr-request" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
           MTR request
         </Link>
+      </section>
+
+      <section className="space-y-2" aria-labelledby="tally-links">
+        <h2 id="tally-links" className="text-sm font-bold uppercase tracking-wide">
+          Tally and components
+        </h2>
+        <SpecialtyNav />
       </section>
 
       <section className="space-y-2" aria-labelledby="appearance">
@@ -86,17 +93,29 @@ export function MorePage() {
         ) : null}
       </section>
 
+      <section className="space-y-2" aria-labelledby="sample-heading">
+        <h2 id="sample-heading" className="text-sm font-bold uppercase tracking-wide">
+          Sample project
+        </h2>
+        {snapshot.settings.sample ? (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={leaveSampleProject}>
+            Back to my project
+          </button>
+        ) : (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={loadSampleProject}>
+            Load sample project
+          </button>
+        )}
+        <p className="text-sm text-pmi-muted">Optional practice records. Your project stays on this device.</p>
+      </section>
+
       <section className="space-y-2" aria-labelledby="sync-heading">
         <h2 id="sync-heading" className="text-sm font-bold uppercase tracking-wide">
-          Sync queue
+          On this device
         </h2>
         <p className="font-bold uppercase">{syncLabel}</p>
         <p className="text-sm text-pmi-muted">{syncDetail}</p>
-        <ul className="space-y-1 text-sm">
-          <li>{SYNC_LABEL.offlineSaved} — records are on this device.</li>
-          <li>{SYNC_LABEL.syncing} — a connected database is receiving the queue.</li>
-          <li>{SYNC_LABEL.syncComplete} — the connected database acknowledged the queue.</li>
-        </ul>
+        <p className="text-sm">{SYNC_LABEL.offlineSaved} — the inspection record is stored in this browser.</p>
         {snapshot.queue.length === 0 ? (
           <p>No changes waiting.</p>
         ) : (

@@ -1,18 +1,45 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { deleteBlob, loadSnapshot, readBlob, saveBlob, saveSnapshot } from '../data/db';
-import { countPending, describeSync, lastAckAt, remoteConfigured } from '../domain/sync';
+import {
+  clearParkedSnapshot,
+  createEmptySnapshot,
+  deleteBlob,
+  loadParkedSnapshot,
+  loadSnapshot,
+  parkLiveSnapshot,
+  readBlob,
+  saveBlob,
+  saveSnapshot,
+} from '../data/db';
+import { localIsoDate } from '../domain/dates';
+import { buildDemoData } from '../domain/demo-data';
+import { emptySnapshot } from '../domain/empty';
 import { createReceipt, type ReceiveInput, type ReceiveResult } from '../domain/receive';
 import { addDocument, removeDocument, saveMtrRequest, updateProject } from '../domain/records';
+import {
+  saveFitting as writeFitting,
+  saveFlange as writeFlange,
+  saveValve as writeValve,
+  type FittingInput,
+  type FlangeInput,
+  type ValveInput,
+} from '../domain/specialty';
+import { countPending, describeSync } from '../domain/sync';
+import { savePipeJoint as writePipeJoint, type PipeJointInput } from '../domain/tally';
 import type { AppSnapshot, MtrRequestLine, PermissionNote, ProjectRecord, ThemeMode } from '../domain/types';
+
+const NAME_FIRST = 'Name the project before adding material. Nothing was invented.';
 
 interface AppContextValue {
   ready: boolean;
   error: string | null;
   snapshot: AppSnapshot | null;
-  online: boolean;
   syncLabel: string;
   syncDetail: string;
   saveReceipt: (input: ReceiveInput) => ReceiveResult | null;
+  savePipeJoint: (input: PipeJointInput) => string[];
+  saveFitting: (input: FittingInput) => { errors: string[]; id?: string };
+  saveFlange: (input: FlangeInput) => { errors: string[]; id?: string };
+  saveValve: (input: ValveInput) => { errors: string[]; id?: string };
   saveProject: (project: ProjectRecord) => string[];
   attachDocument: (file: File, subjectType: string, subjectId: string) => Promise<void>;
   deleteDocument: (documentId: string) => Promise<void>;
@@ -27,6 +54,8 @@ interface AppContextValue {
   setTheme: (theme: ThemeMode) => void;
   recordPermission: (kind: 'camera' | 'gps', note: PermissionNote) => void;
   openDocument: (documentId: string) => Promise<string | null>;
+  loadSampleProject: () => void;
+  leaveSampleProject: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -42,16 +71,19 @@ export function AppProvider({
 }) {
   const [snapshot, setSnapshot] = useState<AppSnapshot | null>(initial ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [online, setOnline] = useState(() => navigator.onLine);
   const dirty = useRef(false);
   const memoryBlobs = useRef(new Map<string, Blob>());
+  const liveRef = useRef<AppSnapshot | null>(null);
 
   useEffect(() => {
     if (initial || !persist) return;
     let cancelled = false;
     loadSnapshot()
-      .then((loaded) => {
-        if (!cancelled) setSnapshot(loaded);
+      .then(async (loaded) => {
+        if (cancelled) return;
+        const next = loaded ?? createEmptySnapshot();
+        if (!loaded) await saveSnapshot(next);
+        setSnapshot(next);
       })
       .catch(() => {
         if (!cancelled) {
@@ -69,42 +101,18 @@ export function AppProvider({
   }, [persist, snapshot]);
 
   useEffect(() => {
-    const markOnline = () => setOnline(true);
-    const markOffline = () => setOnline(false);
-    window.addEventListener('online', markOnline);
-    window.addEventListener('offline', markOffline);
-    return () => {
-      window.removeEventListener('online', markOnline);
-      window.removeEventListener('offline', markOffline);
-    };
-  }, []);
-
-  useEffect(() => {
     if (!snapshot) return;
     document.documentElement.dataset.theme = snapshot.settings.theme;
     const themeColor =
-      snapshot.settings.theme === 'outdoor' ? '#000000' : snapshot.settings.theme === 'dark' ? '#101614' : '#0c5c56';
+      snapshot.settings.theme === 'outdoor' ? '#000000' : snapshot.settings.theme === 'dark' ? '#12161b' : '#2a3340';
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
   }, [snapshot]);
 
   const sync = useMemo(() => {
-    if (!snapshot) {
-      return describeSync({
-        online,
-        pending: 0,
-        syncing: false,
-        remoteConfigured,
-        lastAckAt: null,
-      });
-    }
     return describeSync({
-      online,
-      pending: countPending(snapshot.queue),
-      syncing: false,
-      remoteConfigured,
-      lastAckAt: lastAckAt(snapshot.queue),
+      pending: snapshot ? countPending(snapshot.queue) : 0,
     });
-  }, [online, snapshot]);
+  }, [snapshot]);
 
   function commit(next: AppSnapshot) {
     dirty.current = true;
@@ -116,17 +124,45 @@ export function AppProvider({
       ready: Boolean(snapshot),
       error,
       snapshot,
-      online,
       syncLabel: sync.label,
       syncDetail: sync.detail,
       saveReceipt(input) {
         if (!snapshot) return null;
+        if (!snapshot.project.name.trim()) return { snapshot, errors: [NAME_FIRST] };
         const result = createReceipt(snapshot, input, {
           now: new Date(),
           newId: () => crypto.randomUUID(),
         });
         if (result.errors.length === 0) commit(result.snapshot);
         return result;
+      },
+      savePipeJoint(input) {
+        if (!snapshot) return ['Records are not loaded.'];
+        if (!snapshot.project.name.trim()) return [NAME_FIRST];
+        const result = writePipeJoint(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return result.errors;
+      },
+      saveFitting(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST] };
+        const result = writeFitting(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
+      },
+      saveFlange(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST] };
+        const result = writeFlange(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
+      },
+      saveValve(input) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST] };
+        const result = writeValve(snapshot, input, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, id: result.id };
       },
       saveProject(project) {
         if (!snapshot) return ['Records are not loaded.'];
@@ -173,6 +209,7 @@ export function AppProvider({
       },
       saveRequest(input) {
         if (!snapshot) return ['Records are not loaded.'];
+        if (!snapshot.project.name.trim()) return [NAME_FIRST];
         const result = saveMtrRequest(snapshot, input, {
           now: new Date(),
           newId: () => crypto.randomUUID(),
@@ -206,8 +243,44 @@ export function AppProvider({
         const blob = new Blob([copy], { type: stored.mimeType || 'application/octet-stream' });
         return URL.createObjectURL(blob);
       },
+      loadSampleProject() {
+        if (!snapshot || snapshot.settings.sample) return;
+        const live = snapshot;
+        liveRef.current = live;
+        const sample = buildDemoData(localIsoDate());
+        sample.settings = { ...sample.settings, sample: true, theme: live.settings.theme };
+        if (!persist) {
+          commit(sample);
+          return;
+        }
+        void parkLiveSnapshot(live).then(() => commit(sample));
+      },
+      leaveSampleProject() {
+        const theme = snapshot?.settings.theme;
+        const memory = liveRef.current && !liveRef.current.settings.sample ? liveRef.current : null;
+        liveRef.current = null;
+        const apply = (live: AppSnapshot) => {
+          commit({
+            ...live,
+            settings: { ...live.settings, theme: theme ?? live.settings.theme, sample: false },
+          });
+        };
+        if (memory) {
+          if (persist) void clearParkedSnapshot();
+          apply(memory);
+          return;
+        }
+        if (!persist) {
+          apply(emptySnapshot());
+          return;
+        }
+        void loadParkedSnapshot().then((parked) => {
+          void clearParkedSnapshot();
+          apply(parked ?? emptySnapshot());
+        });
+      },
     };
-  }, [error, online, persist, snapshot, sync.detail, sync.label]);
+  }, [error, persist, snapshot, sync.detail, sync.label]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import { buildDemoData } from '../domain/demo-data';
+import { emptySnapshot } from '../domain/empty';
 import { localIsoDate } from '../domain/dates';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { renderAt } from './render';
@@ -9,8 +10,8 @@ const demo = buildDemoData(localIsoDate());
 
 test('home shows the project, queue state, and receive action', () => {
   renderAt(demo);
-  expect(screen.getByRole('heading', { name: 'PROJECT' })).toBeInTheDocument();
-  expect(screen.getByText('Guest Demo Spread')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Northline Spread A' })).toBeInTheDocument();
+  expect(screen.getByText('Northline Spread A')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /TODAY'S DELIVERIES/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /MATERIAL ON HOLD/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /MISSING MTRs/ })).toBeInTheDocument();
@@ -75,6 +76,28 @@ test('outdoor theme is an explicit choice', () => {
   renderAt(demo, '/more');
   fireEvent.click(screen.getByRole('button', { name: 'Outdoor high-contrast' }));
   expect(document.documentElement.dataset.theme).toBe('outdoor');
+});
+
+test('a new project opens on the field home with no material', () => {
+  renderAt(emptySnapshot());
+  expect(screen.getByRole('heading', { name: 'Project' })).toBeInTheDocument();
+  expect(screen.getByText('No material received yet.')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
+  expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
+  expect(screen.queryByText('PMI-PIPE-000001')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Work on this device' })).not.toBeInTheDocument();
+  expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
+});
+
+test('sample project is optional from More and is labeled as a sample', () => {
+  renderAt(emptySnapshot(), '/more');
+  fireEvent.click(screen.getByRole('button', { name: 'Load sample project' }));
+  expect(screen.getByText('Sample project.')).toBeInTheDocument();
+  expect(screen.queryByText(/SYNC COMPLETE/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'Home' }));
+  expect(screen.getByRole('heading', { name: 'Northline Spread A' })).toBeInTheDocument();
 });
 
 test('camera and GPS stubs do not invent a capture when the device API is missing', async () => {

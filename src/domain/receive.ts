@@ -1,5 +1,6 @@
-import { nextMaterialCode } from './ids';
+import { collectMaterialCodes, nextMaterialCode } from './ids';
 import { enqueue } from './sync';
+import { pipeJointShell } from './tally';
 import type {
   AppSnapshot,
   AuditLogRecord,
@@ -9,6 +10,7 @@ import type {
   MaterialCategory,
   MaterialRecord,
   PhotoRecord,
+  PipeJointRecord,
   PurchaseOrderRecord,
   SyncQueueItem,
 } from './types';
@@ -30,9 +32,10 @@ export interface ReceiveLineInput {
 }
 
 export interface PhotoStubInput {
-  role: 'packing_slip' | 'bol' | 'material';
+  role: 'packing_slip' | 'bol' | 'material' | 'damage' | 'other';
   permissionStatus: Exclude<GpsStatus, 'not_provided'>;
   message: string;
+  caption?: string;
 }
 
 export interface GpsInput {
@@ -145,12 +148,21 @@ export function createReceipt(
     quantity: clean(line.quantity),
   }));
 
+  const seenJoints = new Set(snapshot.pipeJoints.map((joint) => joint.jointNumber.trim().toLowerCase()));
   lines.forEach((line, index) => {
     if (!line.description) errors.push(`Line ${index + 1} needs a material description.`);
     const quantity = Number(line.quantity);
     if (!Number.isFinite(quantity) || quantity <= 0) {
       errors.push(`Line ${index + 1} quantity must be a number greater than zero.`);
     }
+    if (line.category !== 'pipe') return;
+    const jointNumber = clean(line.jointNumber);
+    if (!jointNumber) return;
+    const key = jointNumber.toLowerCase();
+    if (seenJoints.has(key)) {
+      errors.push(`Line ${index + 1} joint ${jointNumber} is already on the pipe tally.`);
+    }
+    seenJoints.add(key);
   });
 
   let latitude: number | null = null;
@@ -178,7 +190,7 @@ export function createReceipt(
   if (errors.length > 0) return { snapshot, errors };
 
   const nowIso = ctx.now.toISOString();
-  const codes = snapshot.materials.map((material) => material.materialCode);
+  const codes = collectMaterialCodes(snapshot);
   const poNumber = clean(input.poNumber);
   let purchaseOrders = snapshot.purchaseOrders;
   let purchaseOrderId: string | null = null;
@@ -227,6 +239,7 @@ export function createReceipt(
 
   const materials: MaterialRecord[] = [];
   const materialCodes: string[] = [];
+  const joints: PipeJointRecord[] = [];
   for (const line of lines) {
     const materialCode = nextMaterialCode(line.category, [...codes, ...materialCodes]);
     materialCodes.push(materialCode);
@@ -255,6 +268,10 @@ export function createReceipt(
       receivedOn,
       notes: '',
     });
+    const created = materials[materials.length - 1];
+    if (created.category === 'pipe' && created.jointNumber) {
+      joints.push(pipeJointShell(created, ctx.newId()));
+    }
   }
 
   const photos: PhotoRecord[] = input.photoStubs.map((stub) => ({
@@ -263,7 +280,7 @@ export function createReceipt(
     subjectType: 'delivery',
     subjectId: delivery.id,
     role: stub.role,
-    caption: stub.message,
+    caption: [stub.caption, stub.message].filter(Boolean).join(' — '),
     permissionStatus: stub.permissionStatus,
     byteSize: 0,
     capturedAt: null,
@@ -298,6 +315,7 @@ export function createReceipt(
   const queued = [
     { entityType: 'deliveries', entityId: delivery.id },
     ...materials.map((material) => ({ entityType: 'materials', entityId: material.id })),
+    ...joints.map((joint) => ({ entityType: 'pipe_joints', entityId: joint.id })),
     ...documents.map((document) => ({ entityType: 'documents', entityId: document.id })),
   ];
   for (const item of queued) {
@@ -316,6 +334,7 @@ export function createReceipt(
       purchaseOrders,
       deliveries: [...snapshot.deliveries, delivery],
       materials: [...snapshot.materials, ...materials],
+      pipeJoints: joints.length > 0 ? [...snapshot.pipeJoints, ...joints] : snapshot.pipeJoints,
       photos: [...snapshot.photos, ...photos],
       documents: [...snapshot.documents, ...documents],
       auditLogs: [...snapshot.auditLogs, audit],

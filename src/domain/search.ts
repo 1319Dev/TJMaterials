@@ -2,7 +2,7 @@ import type { AppSnapshot, VerificationStatus } from './types';
 
 export interface SearchHit {
   id: string;
-  kind: 'Material' | 'Delivery' | 'Purchase order' | 'MTR';
+  kind: 'Material' | 'Pipe joint' | 'Fitting' | 'Flange' | 'Valve' | 'Delivery' | 'Purchase order' | 'MTR';
   title: string;
   subtitle: string;
   matchedOn: string;
@@ -44,6 +44,92 @@ export function searchRecords(snapshot: AppSnapshot, rawQuery: string): SearchHi
       subtitle: [material.description, material.heatNumber, material.jointNumber].filter(Boolean).join(' · '),
       matchedOn: matched.map(([label]) => label).join(', '),
       verificationStatus: material.verificationStatus,
+    });
+  }
+
+  for (const joint of snapshot.pipeJoints) {
+    const fields: Array<[string, string]> = [
+      ['Joint', joint.jointNumber],
+      ['Heat number', joint.heatNumber],
+      ['Material ID', joint.materialCode],
+      ['Grade', joint.grade],
+      ['Wall', joint.wallThickness],
+    ];
+    const matched = fields.filter(([, value]) => includes(value, query));
+    if (matched.length === 0) continue;
+    hits.push({
+      id: joint.id,
+      kind: 'Pipe joint',
+      title: joint.jointNumber,
+      subtitle: [joint.materialCode, joint.heatNumber, joint.lengthFt === null ? 'Length not recorded' : `${joint.lengthFt} ft`]
+        .filter(Boolean)
+        .join(' · '),
+      matchedOn: matched.map(([label]) => label).join(', '),
+      verificationStatus: joint.verificationStatus,
+    });
+  }
+
+  for (const fitting of snapshot.fittings) {
+    const fields: Array<[string, string]> = [
+      ['Material ID', fitting.materialCode],
+      ['Heat number', fitting.heatNumber],
+      ['Description', fitting.description],
+      ['Grade', fitting.grade],
+      ['Expected grade', fitting.expectedGrade],
+      ['Manufacturer', fitting.manufacturer],
+    ];
+    const matched = fields.filter(([, value]) => includes(value, query));
+    if (matched.length === 0) continue;
+    hits.push({
+      id: fitting.id,
+      kind: 'Fitting',
+      title: fitting.materialCode,
+      subtitle: [fitting.description, fitting.heatNumber].filter(Boolean).join(' · '),
+      matchedOn: matched.map(([label]) => label).join(', '),
+      verificationStatus: fitting.verificationStatus,
+    });
+  }
+
+  for (const flange of snapshot.flanges) {
+    const fields: Array<[string, string]> = [
+      ['Material ID', flange.materialCode],
+      ['Heat number', flange.heatNumber],
+      ['Description', flange.description],
+      ['Class', flange.classRating],
+      ['Serial / lot', flange.serialOrLot],
+      ['Manufacturer', flange.manufacturer],
+    ];
+    const matched = fields.filter(([, value]) => includes(value, query));
+    if (matched.length === 0) continue;
+    hits.push({
+      id: flange.id,
+      kind: 'Flange',
+      title: flange.materialCode,
+      subtitle: [flange.description, flange.classRating ? `Class ${flange.classRating}` : ''].filter(Boolean).join(' · '),
+      matchedOn: matched.map(([label]) => label).join(', '),
+      verificationStatus: flange.verificationStatus,
+    });
+  }
+
+  for (const valve of snapshot.valves) {
+    const fields: Array<[string, string]> = [
+      ['Material ID', valve.materialCode],
+      ['Heat number', valve.heatNumber],
+      ['Serial / lot', valve.serialNumber],
+      ['Actuator serial', valve.actuatorSerial],
+      ['Manufacturer', valve.manufacturer],
+      ['Model', valve.modelNumber],
+      ['Description', valve.description],
+    ];
+    const matched = fields.filter(([, value]) => includes(value, query));
+    if (matched.length === 0) continue;
+    hits.push({
+      id: valve.id,
+      kind: 'Valve',
+      title: valve.materialCode,
+      subtitle: [valve.description, valve.serialNumber, valve.actuatorSerial].filter(Boolean).join(' · '),
+      matchedOn: matched.map(([label]) => label).join(', '),
+      verificationStatus: valve.verificationStatus,
     });
   }
 

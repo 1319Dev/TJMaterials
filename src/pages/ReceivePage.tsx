@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { localIsoDate } from '../domain/dates';
-import { nextMaterialCode } from '../domain/ids';
+import { collectMaterialCodes, nextMaterialCode } from '../domain/ids';
 import { CATEGORY_LABELS } from '../domain/labels';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { emptyReceiveLine, receiveDefaults, type PhotoStubInput, type ReceiveInput, type ReceiveLineInput } from '../domain/receive';
 import type { MaterialCategory } from '../domain/types';
 import { useApp } from '../state/AppState';
-import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
+import { SpecialtyNav } from '../components/SpecialtyNav';
+import { PhotoSlot, SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function ReceivePage() {
   const { snapshot, saveReceipt, recordPermission } = useApp();
@@ -19,7 +20,7 @@ export function ReceivePage() {
   const active = form ?? (snapshot ? receiveDefaults(snapshot, today) : null);
   const previewCodes = useMemo(() => {
     if (!snapshot || !active) return [];
-    const codes = snapshot.materials.map((material) => material.materialCode);
+    const codes = collectMaterialCodes(snapshot);
     const assigned: string[] = [];
     for (const line of active.lines) {
       const code = nextMaterialCode(line.category, [...codes, ...assigned]);
@@ -42,12 +43,13 @@ export function ReceivePage() {
     update({ lines });
   }
 
-  async function onCamera(role: PhotoStubInput['role']) {
+  async function onCamera(role: PhotoStubInput['role'], caption: string) {
     const note = await requestCameraStub();
     recordPermission('camera', note);
     setPermissionNote(note.message);
     const stub: PhotoStubInput = {
       role,
+      caption,
       permissionStatus: note.status,
       message: note.message,
     };
@@ -107,6 +109,7 @@ export function ReceivePage() {
           Saved on this device as REVIEW REQUIRED. Heat numbers, photos, and coordinates are stored only when you enter them.
         </p>
       </div>
+      <SpecialtyNav />
 
       {errors.length > 0 ? (
         <ul role="alert" className="space-y-1 rounded-2xl border-2 border-pmi-border p-3">
@@ -131,9 +134,7 @@ export function ReceivePage() {
       ) : null}
 
       <section className="space-y-3" aria-labelledby="delivery-header">
-        <h2 id="delivery-header" className="text-sm font-bold uppercase tracking-wide">
-          Delivery header
-        </h2>
+        <SheetHeader id="delivery-header">DELIVERY</SheetHeader>
         <Field label="Received date">
           <input className={controlClass} type="date" value={active.receivedOn} onChange={(event) => update({ receivedOn: event.target.value })} />
         </Field>
@@ -162,25 +163,31 @@ export function ReceivePage() {
       </section>
 
       <section className="space-y-3" aria-labelledby="paper-header">
-        <h2 id="paper-header" className="text-sm font-bold uppercase tracking-wide">
-          Packing slip / BOL
-        </h2>
+        <SheetHeader id="paper-header">MARKINGS</SheetHeader>
         <Field label="Packing slip #">
-          <input className={controlClass} {...codeFieldProps} value={active.packingSlipNumber} onChange={(event) => update({ packingSlipNumber: event.target.value })} />
+          <input className={codeControlClass} {...codeFieldProps} value={active.packingSlipNumber} onChange={(event) => update({ packingSlipNumber: event.target.value })} />
         </Field>
         <Field label="BOL #">
-          <input className={controlClass} {...codeFieldProps} value={active.bolNumber} onChange={(event) => update({ bolNumber: event.target.value })} />
+          <input className={codeControlClass} {...codeFieldProps} value={active.bolNumber} onChange={(event) => update({ bolNumber: event.target.value })} />
         </Field>
         <div className="grid grid-cols-1 gap-2">
-          <button type="button" className="min-h-14 rounded-2xl border-2 border-pmi-border bg-pmi-card text-base font-bold" onClick={() => onCamera('packing_slip')}>
-            Packing slip photo
-          </button>
-          <button type="button" className="min-h-14 rounded-2xl border-2 border-pmi-border bg-pmi-card text-base font-bold" onClick={() => onCamera('bol')}>
-            BOL photo
-          </button>
-          <button type="button" className="min-h-14 rounded-2xl border-2 border-pmi-border bg-pmi-card text-base font-bold" onClick={() => onGps()}>
-            Capture GPS
-          </button>
+          {(
+            [
+              ['packing_slip', 'PACKING SLIP'],
+              ['bol', 'BOL'],
+            ] as const
+          ).map(([role, caption]) => {
+            const stub = [...active.photoStubs].reverse().find((item) => item.caption === caption);
+            return (
+              <PhotoSlot
+                key={caption}
+                caption={caption}
+                filled={Boolean(stub)}
+                detail={stub ? `${stub.message} NO BYTES stored.` : 'Tap to open a capture slot. No photo bytes are stored.'}
+                onCapture={() => onCamera(role, caption)}
+              />
+            );
+          })}
         </div>
         <Field label="Attach packing slip file" hint="Metadata and the file stay on this device.">
           <input className={controlClass} type="file" onChange={(event) => onFile(event, 'packing_slip')} />
@@ -188,16 +195,6 @@ export function ReceivePage() {
         <Field label="Attach BOL file">
           <input className={controlClass} type="file" onChange={(event) => onFile(event, 'bol')} />
         </Field>
-        {permissionNote ? <p className="text-sm">{permissionNote}</p> : null}
-        {active.photoStubs.length > 0 ? (
-          <ul className="text-sm">
-            {active.photoStubs.map((stub, index) => (
-              <li key={`${stub.role}-${index}`}>
-                {stub.role}: {stub.message} (no photo bytes stored)
-              </li>
-            ))}
-          </ul>
-        ) : null}
         {active.documents.length > 0 ? (
           <ul className="text-sm">
             {active.documents.map((document) => (
@@ -209,14 +206,40 @@ export function ReceivePage() {
         ) : null}
       </section>
 
+      <section className="space-y-3" aria-labelledby="condition-header">
+        <SheetHeader id="condition-header">CONDITION</SheetHeader>
+        <div className="grid grid-cols-1 gap-2">
+          {(
+            [
+              ['material', 'ENTIRE LOAD'],
+              ['other', 'HEAT STAMP'],
+              ['damage', 'DAMAGE'],
+            ] as const
+          ).map(([role, caption]) => {
+            const stub = [...active.photoStubs].reverse().find((item) => item.caption === caption);
+            return (
+              <PhotoSlot
+                key={caption}
+                caption={caption}
+                filled={Boolean(stub)}
+                detail={stub ? `${stub.message} NO BYTES stored.` : 'Tap to open a capture slot. No photo bytes are stored.'}
+                onCapture={() => onCamera(role, caption)}
+              />
+            );
+          })}
+        </div>
+        <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-base font-bold" onClick={() => onGps()}>
+          Capture GPS
+        </button>
+        {permissionNote ? <p className="text-sm">{permissionNote}</p> : null}
+      </section>
+
       <section className="space-y-4" aria-labelledby="lines-header">
-        <h2 id="lines-header" className="text-sm font-bold uppercase tracking-wide">
-          Line items
-        </h2>
+        <SheetHeader id="lines-header">LINE ITEMS</SheetHeader>
         {active.lines.map((line, index) => (
           <fieldset key={index} className="space-y-3 rounded-2xl border-2 border-pmi-border p-3">
             <legend className="px-1 font-bold">Line {index + 1}</legend>
-            <p className="text-sm font-bold">Material ID {previewCodes[index]}</p>
+            <p className="pmi-code text-sm font-bold">Material ID {previewCodes[index]}</p>
             <Field label="Category">
               <select
                 className={controlClass}
@@ -243,7 +266,7 @@ export function ReceivePage() {
               <input className={controlClass} value={line.grade} onChange={(event) => updateLine(index, { grade: event.target.value })} />
             </Field>
             <Field label="Heat Number">
-              <input className={controlClass} {...codeFieldProps} value={line.heatNumber} onChange={(event) => updateLine(index, { heatNumber: event.target.value })} />
+              <input className={codeControlClass} {...codeFieldProps} value={line.heatNumber} onChange={(event) => updateLine(index, { heatNumber: event.target.value })} />
             </Field>
             <Field label="Manufacturer">
               <input className={controlClass} value={line.manufacturer} onChange={(event) => updateLine(index, { manufacturer: event.target.value })} />
@@ -258,7 +281,7 @@ export function ReceivePage() {
               <input className={controlClass} {...codeFieldProps} value={line.serialOrLot} onChange={(event) => updateLine(index, { serialOrLot: event.target.value })} />
             </Field>
             <Field label="Joint">
-              <input className={controlClass} {...codeFieldProps} value={line.jointNumber} onChange={(event) => updateLine(index, { jointNumber: event.target.value })} />
+              <input className={codeControlClass} {...codeFieldProps} value={line.jointNumber} onChange={(event) => updateLine(index, { jointNumber: event.target.value })} />
             </Field>
             <Field label="ANSI / Pressure Rating">
               <input

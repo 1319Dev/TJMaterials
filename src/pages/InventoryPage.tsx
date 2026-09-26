@@ -1,8 +1,10 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { filterMaterials, type InventoryFilter } from '../domain/dashboard';
 import { localIsoDate } from '../domain/dates';
 import { CATEGORY_LABELS, CUSTODY_LABELS } from '../domain/labels';
+import type { AppSnapshot, MaterialRecord } from '../domain/types';
 import { useApp } from '../state/AppState';
+import { GradeAlert } from '../components/forms';
 import { VerificationBadge } from '../components/ui';
 
 const filters: Array<{ id: InventoryFilter; label: string }> = [
@@ -64,16 +66,66 @@ export function InventoryPage() {
               </p>
               <p className="text-sm">
                 {material.manufacturer || 'Manufacturer not recorded'}
-                {material.diameter ? ` · ${material.diameter}"` : ''}
+                {material.diameter ? ` · ${material.diameter}${/^\d+(\.\d+)?$/.test(material.diameter) ? '"' : ''}` : ''}
                 {material.grade ? ` · ${material.grade}` : ''}
               </p>
-              <div className="mt-2">
+              <div className="mt-2 space-y-2">
                 <VerificationBadge status={material.verificationStatus} />
+                <MaterialGradeAlert snapshot={snapshot} material={material} />
               </div>
+              <RecordLink snapshot={snapshot} material={material} />
             </li>
           );
         })}
       </ul>
     </div>
   );
+}
+
+function MaterialGradeAlert({ snapshot, material }: { snapshot: AppSnapshot; material: MaterialRecord }) {
+  const fitting = snapshot.fittings.find((item) => item.materialId === material.id);
+  if (fitting) return <GradeAlert expected={fitting.expectedGrade} received={fitting.grade} />;
+  const flange = snapshot.flanges.find((item) => item.materialId === material.id);
+  if (flange) return <GradeAlert expected={flange.expectedGrade} received={flange.grade} />;
+  const valve = snapshot.valves.find((item) => item.materialId === material.id);
+  if (valve) return <GradeAlert expected={valve.expectedGrade} received={valve.grade} />;
+  return null;
+}
+
+function RecordLink({ snapshot, material }: { snapshot: AppSnapshot; material: MaterialRecord }) {
+  if (material.category === 'pipe') {
+    return (
+      <Link to="/tally" className="mt-3 inline-flex min-h-12 items-center font-bold underline">
+        Pipe tally
+      </Link>
+    );
+  }
+  if (material.category === 'fitting') {
+    const row = snapshot.fittings.find((item) => item.materialId === material.id);
+    if (!row) return null;
+    return (
+      <Link to={`/fittings/${row.id}`} className="mt-3 inline-flex min-h-12 items-center font-bold underline">
+        Edit fitting
+      </Link>
+    );
+  }
+  if (material.category === 'flange') {
+    const row = snapshot.flanges.find((item) => item.materialId === material.id);
+    if (!row) return null;
+    return (
+      <Link to={`/flanges/${row.id}`} className="mt-3 inline-flex min-h-12 items-center font-bold underline">
+        Edit flange
+      </Link>
+    );
+  }
+  if (material.category === 'valve') {
+    const row = snapshot.valves.find((item) => item.materialId === material.id);
+    if (!row) return null;
+    return (
+      <Link to={`/valves/${row.id}`} className="mt-3 inline-flex min-h-12 items-center font-bold underline">
+        Edit valve
+      </Link>
+    );
+  }
+  return null;
 }

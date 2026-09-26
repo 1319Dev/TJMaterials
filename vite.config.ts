@@ -21,8 +21,8 @@ export default defineConfig({
         short_name: 'Material Inspector',
         description:
           'Third-party pipeline materials documentation website. Install from the browser. Not an App Store app.',
-        theme_color: '#0c5c56',
-        background_color: '#f3f0e8',
+        theme_color: '#2a3340',
+        background_color: '#c5ccd4',
         display: 'standalone',
         prefer_related_applications: false,
         start_url: '/TJMaterials/',
