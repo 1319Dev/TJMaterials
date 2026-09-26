@@ -1,13 +1,41 @@
-import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { BottomNav } from './BottomNav';
 import { Disclaimer } from './ui';
 
 export function Shell() {
   const { ready, error, syncLabel, syncDetail } = useApp();
+  const location = useLocation();
+  const onInstallPage = location.pathname.endsWith('/more');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const syncKeyboard = () => {
+      if (!viewport) return;
+      const keyboardOpen = window.innerHeight - viewport.height > 140;
+      root.classList.toggle('pmi-keyboard', keyboardOpen);
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.matches('input, textarea, select')) return;
+      window.setTimeout(() => {
+        target.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }, 280);
+    };
+    viewport?.addEventListener('resize', syncKeyboard);
+    document.addEventListener('focusin', onFocusIn);
+    return () => {
+      viewport?.removeEventListener('resize', syncKeyboard);
+      document.removeEventListener('focusin', onFocusIn);
+      root.classList.remove('pmi-keyboard');
+    };
+  }, []);
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg px-4 pb-28 pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div className="pmi-shell mx-auto min-h-[100dvh] max-w-lg px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]">
       <a href="#main" className="sr-only focus:not-sr-only">
         Skip to content
       </a>
@@ -26,6 +54,11 @@ export function Shell() {
           <span className="mt-1 block font-medium text-pmi-muted">{syncDetail}</span>
         </p>
         <Disclaimer />
+        {onInstallPage ? null : (
+          <Link to="/more#install" className="inline-flex min-h-12 items-center text-base font-bold underline">
+            Add to Home Screen
+          </Link>
+        )}
       </header>
       <main id="main">
         {error ? (

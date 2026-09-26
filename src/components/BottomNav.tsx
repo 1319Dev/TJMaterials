@@ -12,7 +12,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-pmi-border bg-pmi-nav pb-[env(safe-area-inset-bottom)]"
+      className="pmi-tabbar fixed inset-x-0 bottom-0 z-30 border-t-2 border-pmi-border bg-pmi-nav pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5">
         {items.map((item) => (

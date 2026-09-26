@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { InstallGuide } from '../components/InstallGuide';
 import { formatWhen } from '../domain/dates';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { SYNC_LABEL } from '../domain/sync';
@@ -29,6 +30,7 @@ export function MorePage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-black">More</h1>
       <p>Guest mode is on. Sign-in is not required, and Phase 1 does not collect a password.</p>
+      <InstallGuide />
 
       <section className="space-y-2" aria-labelledby="setup-links">
         <h2 id="setup-links" className="text-sm font-bold uppercase tracking-wide">

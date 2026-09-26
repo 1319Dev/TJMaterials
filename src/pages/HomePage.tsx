@@ -83,7 +83,7 @@ export function HomePage() {
         </ul>
       </section>
 
-      <div className="fixed inset-x-0 z-20 mx-auto max-w-lg px-4" style={{ bottom: 'calc(4.25rem + env(safe-area-inset-bottom))' }}>
+      <div className="pmi-dock fixed inset-x-0 z-20 mx-auto max-w-lg px-4" style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
         <Link
           to="/receive"
           className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-pmi-accent text-lg font-black text-pmi-accent-text"

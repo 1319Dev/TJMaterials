@@ -4,6 +4,13 @@ import { verificationLabel } from '../domain/labels';
 export const controlClass =
   'mt-1 w-full min-h-12 rounded-xl border-2 border-pmi-border bg-pmi-card px-3 py-2 text-lg text-pmi-text';
 
+export const codeFieldProps = {
+  autoComplete: 'off',
+  autoCorrect: 'off',
+  autoCapitalize: 'characters',
+  spellCheck: false,
+} as const;
+
 export function Field({
   label,
   hint,

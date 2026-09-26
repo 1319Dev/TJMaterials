@@ -6,6 +6,12 @@ const index = readFileSync(path.join(dist, 'index.html'), 'utf8');
 if (!index.includes('/TJMaterials/')) {
   throw new Error('Built index.html is missing the /TJMaterials/ base path.');
 }
+for (const marker of ['apple-mobile-web-app-capable', 'apple-touch-icon', 'format-detection', 'viewport-fit=cover']) {
+  if (!index.includes(marker)) throw new Error(`Built index.html is missing ${marker}`);
+}
+if (!existsSync(path.join(dist, 'icons/apple-touch-icon.png'))) {
+  throw new Error('180px Apple touch icon is missing.');
+}
 if (!existsSync(path.join(dist, '404.html'))) {
   throw new Error('dist/404.html is missing. GitHub Pages needs it for the SPA.');
 }
@@ -35,5 +41,11 @@ const manifestFile = files.find((file) => file.endsWith('.webmanifest'));
 const manifest = JSON.parse(readFileSync(path.join(dist, manifestFile), 'utf8'));
 if (!String(manifest.start_url).includes('/TJMaterials/')) {
   throw new Error(`Manifest start_url is ${manifest.start_url}`);
+}
+if (manifest.prefer_related_applications !== false) {
+  throw new Error('Manifest must set prefer_related_applications to false so browsers do not offer a native app.');
+}
+if (manifest.display !== 'standalone') {
+  throw new Error(`Manifest display is ${manifest.display}`);
 }
 console.log('dist OK', { manifest: manifestFile, files: files.length });

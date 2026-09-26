@@ -41,13 +41,33 @@
 
 html {
   font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   min-height: 100dvh;
   background: var(--pmi-bg);
   color: var(--pmi-text);
+  overscroll-behavior-y: none;
+}
+
+input,
+select,
+textarea {
+  font-size: 1.125rem;
+}
+
+html.pmi-keyboard .pmi-tabbar,
+html.pmi-keyboard .pmi-dock {
+  display: none;
+}
+
+html.pmi-keyboard .pmi-shell {
+  padding-bottom: 1.5rem;
 }
 
 button,

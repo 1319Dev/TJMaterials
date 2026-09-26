@@ -6,7 +6,7 @@ import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { emptyReceiveLine, receiveDefaults, type PhotoStubInput, type ReceiveInput, type ReceiveLineInput } from '../domain/receive';
 import type { MaterialCategory } from '../domain/types';
 import { useApp } from '../state/AppState';
-import { VerificationBadge, controlClass, Field } from '../components/ui';
+import { VerificationBadge, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function ReceivePage() {
   const { snapshot, saveReceipt, recordPermission } = useApp();
@@ -144,7 +144,7 @@ export function ReceivePage() {
           <input className={controlClass} value={active.inspectorName} onChange={(event) => update({ inspectorName: event.target.value })} />
         </Field>
         <Field label="Shipment # (MRC)">
-          <input className={controlClass} value={active.shipmentNumberMrc} onChange={(event) => update({ shipmentNumberMrc: event.target.value })} />
+          <input className={controlClass} {...codeFieldProps} value={active.shipmentNumberMrc} onChange={(event) => update({ shipmentNumberMrc: event.target.value })} />
         </Field>
         <Field label="Sales Order# / Customer PO #">
           <input
@@ -154,7 +154,7 @@ export function ReceivePage() {
           />
         </Field>
         <Field label="PO number">
-          <input className={controlClass} value={active.poNumber} onChange={(event) => update({ poNumber: event.target.value })} />
+          <input className={controlClass} {...codeFieldProps} value={active.poNumber} onChange={(event) => update({ poNumber: event.target.value })} />
         </Field>
         <Field label="Carrier">
           <input className={controlClass} value={active.carrier} onChange={(event) => update({ carrier: event.target.value })} />
@@ -166,10 +166,10 @@ export function ReceivePage() {
           Packing slip / BOL
         </h2>
         <Field label="Packing slip #">
-          <input className={controlClass} value={active.packingSlipNumber} onChange={(event) => update({ packingSlipNumber: event.target.value })} />
+          <input className={controlClass} {...codeFieldProps} value={active.packingSlipNumber} onChange={(event) => update({ packingSlipNumber: event.target.value })} />
         </Field>
         <Field label="BOL #">
-          <input className={controlClass} value={active.bolNumber} onChange={(event) => update({ bolNumber: event.target.value })} />
+          <input className={controlClass} {...codeFieldProps} value={active.bolNumber} onChange={(event) => update({ bolNumber: event.target.value })} />
         </Field>
         <div className="grid grid-cols-1 gap-2">
           <button type="button" className="min-h-14 rounded-2xl border-2 border-pmi-border bg-pmi-card text-base font-bold" onClick={() => onCamera('packing_slip')}>
@@ -243,7 +243,7 @@ export function ReceivePage() {
               <input className={controlClass} value={line.grade} onChange={(event) => updateLine(index, { grade: event.target.value })} />
             </Field>
             <Field label="Heat Number">
-              <input className={controlClass} value={line.heatNumber} onChange={(event) => updateLine(index, { heatNumber: event.target.value })} />
+              <input className={controlClass} {...codeFieldProps} value={line.heatNumber} onChange={(event) => updateLine(index, { heatNumber: event.target.value })} />
             </Field>
             <Field label="Manufacturer">
               <input className={controlClass} value={line.manufacturer} onChange={(event) => updateLine(index, { manufacturer: event.target.value })} />
@@ -255,10 +255,10 @@ export function ReceivePage() {
               <input className={controlClass} value={line.modelNumber} onChange={(event) => updateLine(index, { modelNumber: event.target.value })} />
             </Field>
             <Field label="Serial / Lot">
-              <input className={controlClass} value={line.serialOrLot} onChange={(event) => updateLine(index, { serialOrLot: event.target.value })} />
+              <input className={controlClass} {...codeFieldProps} value={line.serialOrLot} onChange={(event) => updateLine(index, { serialOrLot: event.target.value })} />
             </Field>
             <Field label="Joint">
-              <input className={controlClass} value={line.jointNumber} onChange={(event) => updateLine(index, { jointNumber: event.target.value })} />
+              <input className={controlClass} {...codeFieldProps} value={line.jointNumber} onChange={(event) => updateLine(index, { jointNumber: event.target.value })} />
             </Field>
             <Field label="ANSI / Pressure Rating">
               <input

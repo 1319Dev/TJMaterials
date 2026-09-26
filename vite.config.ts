@@ -14,16 +14,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'],
       manifest: {
+        id: '/TJMaterials/',
         name: 'Pipeline Material Inspector',
         short_name: 'Material Inspector',
         description:
-          'Third-party pipeline materials documentation. Not an official utility or inspection-company application.',
+          'Third-party pipeline materials documentation website. Install from the browser. Not an App Store app.',
         theme_color: '#0c5c56',
         background_color: '#f3f0e8',
         display: 'standalone',
-        orientation: 'portrait',
+        prefer_related_applications: false,
         start_url: '/TJMaterials/',
         scope: '/TJMaterials/',
         lang: 'en',

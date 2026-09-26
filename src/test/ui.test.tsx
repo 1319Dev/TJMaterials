@@ -16,6 +16,7 @@ test('home shows the project, queue state, and receive action', () => {
   expect(screen.getByRole('button', { name: /MISSING MTRs/ })).toBeInTheDocument();
   expect(screen.getByRole('heading', { name: 'RECENT INSPECTIONS' })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Add to Home Screen' })).toBeInTheDocument();
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
   expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
 });
@@ -60,6 +61,14 @@ test('search from the search tab finds a joint', () => {
     target: { value: 'J-1041' },
   });
   expect(screen.getByText('PMI-PIPE-000001')).toBeInTheDocument();
+});
+
+test('more page explains the Safari website install', () => {
+  renderAt(demo, '/more');
+  expect(screen.getByRole('heading', { name: 'Use it in the browser' })).toBeInTheDocument();
+  expect(screen.getByText(/On iPhone, open/)).toBeInTheDocument();
+  expect(screen.getByText(/no App Store listing/)).toBeInTheDocument();
+  expect(screen.getByText(/GitHub Pages hosts this website/)).toBeInTheDocument();
 });
 
 test('outdoor theme is an explicit choice', () => {
