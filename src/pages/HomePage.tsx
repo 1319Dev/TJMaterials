@@ -11,14 +11,48 @@ import {
 } from '../domain/dashboard';
 import { useApp } from '../state/AppState';
 import { SpecialtyNav } from '../components/SpecialtyNav';
-import { CustodyChip, VerificationBadge } from '../components/ui';
+import { CustodyChip, Field, VerificationBadge, controlClass } from '../components/ui';
 
 type Drill = 'deliveries' | 'received' | 'holds' | 'mtrs' | 'damage' | 'discrepancies';
 
 export function HomePage() {
-  const { snapshot } = useApp();
+  const { snapshot, saveProject } = useApp();
   const [drill, setDrill] = useState<Drill | null>(null);
+  const [name, setName] = useState('');
+  const [projectNumber, setProjectNumber] = useState('');
+  const [nameError, setNameError] = useState('');
   if (!snapshot) return null;
+  if (!snapshot.project.name.trim()) {
+    return (
+      <form
+        className="space-y-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const errors = saveProject({ ...snapshot.project, name, projectNumber });
+          setNameError(errors[0] ?? '');
+        }}
+      >
+        <h1 className="text-2xl font-black">Start a project</h1>
+        <p className="text-sm text-pmi-muted">
+          The project starts empty. Joints, fittings, flanges, and valves appear only after you receive them.
+        </p>
+        {nameError ? (
+          <p role="alert" className="pmi-flag">
+            {nameError}
+          </p>
+        ) : null}
+        <Field label="Project name">
+          <input className={controlClass} value={name} onChange={(event) => setName(event.target.value)} />
+        </Field>
+        <Field label="Project number">
+          <input className={`${controlClass} pmi-code`} value={projectNumber} onChange={(event) => setProjectNumber(event.target.value)} />
+        </Field>
+        <button type="submit" className="min-h-14 w-full bg-pmi-accent text-lg font-black text-pmi-accent-text">
+          Save project
+        </button>
+      </form>
+    );
+  }
 
   const today = localIsoDate();
   const summary = summarizeDashboard(snapshot, today);
@@ -43,6 +77,9 @@ export function HomePage() {
           {snapshot.project.atmosProjectNumber} · CO {snapshot.project.constructionOrderNo}
         </p>
         <p className="text-sm text-pmi-muted">{snapshot.project.inspectorName}</p>
+        {snapshot.materials.length === 0 && !snapshot.settings.sample ? (
+          <p className="mt-2 text-sm font-bold">No material received yet.</p>
+        ) : null}
       </section>
 
       <SpecialtyNav />

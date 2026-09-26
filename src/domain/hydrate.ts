@@ -1,5 +1,6 @@
 import { buildDemoData } from './demo-data';
 import { localIsoDate } from './dates';
+import { normalizeSettings } from './empty';
 import type { AppSnapshot } from './types';
 
 function hasPhase2(snapshot: AppSnapshot): boolean {
@@ -18,12 +19,16 @@ function mergeById<T extends { id: string }>(current: readonly T[], extras: read
 }
 
 export function ensurePhase2(snapshot: AppSnapshot, today = localIsoDate()): AppSnapshot {
-  if (hasPhase2(snapshot)) return snapshot;
-  const raw = snapshot as Partial<AppSnapshot>;
+  if (hasPhase2(snapshot) && snapshot.settings.sample !== undefined && snapshot.settings.accountEmail !== undefined) {
+    return snapshot;
+  }
+  const withSettings = { ...snapshot, settings: normalizeSettings(snapshot.settings) };
+  if (hasPhase2(withSettings)) return withSettings;
+  const raw = withSettings as Partial<AppSnapshot>;
   const demo = buildDemoData(today);
-  if (snapshot.project.id !== demo.project.id) {
+  if (withSettings.project.id !== demo.project.id) {
     return {
-      ...snapshot,
+      ...withSettings,
       pipeJoints: raw.pipeJoints ?? [],
       fittings: raw.fittings ?? [],
       flanges: raw.flanges ?? [],
@@ -31,7 +36,7 @@ export function ensurePhase2(snapshot: AppSnapshot, today = localIsoDate()): App
     };
   }
   return {
-    ...snapshot,
+    ...withSettings,
     materials: mergeById(snapshot.materials, demo.materials),
     pipeJoints: raw.pipeJoints ?? demo.pipeJoints,
     fittings: raw.fittings ?? demo.fittings,

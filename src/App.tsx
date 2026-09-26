@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Shell } from './components/Shell';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { HomePage } from './pages/HomePage';
 import { InventoryPage } from './pages/InventoryPage';
 import { MorePage } from './pages/MorePage';
@@ -36,6 +37,7 @@ export function AppRoutes() {
         <Route path="more" element={<MorePage />} />
         <Route path="project" element={<ProjectPage />} />
         <Route path="mtr-request" element={<MtrRequestPage />} />
+        <Route path="auth/callback" element={<AuthCallbackPage />} />
       </Route>
     </Routes>
   );

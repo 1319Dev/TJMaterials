@@ -154,6 +154,9 @@ describe('sync states', () => {
     expect(
       describeSync({ online: true, pending: 2, syncing: false, remoteConfigured: false, lastAckAt: null }).label,
     ).toBe(SYNC_LABEL.offlineSaved);
+    expect(
+      describeSync({ online: true, pending: 1, syncing: false, remoteConfigured: true, lastAckAt: null }).label,
+    ).toBe(SYNC_LABEL.saved);
   });
 
   test('acks only when the transport says so', () => {

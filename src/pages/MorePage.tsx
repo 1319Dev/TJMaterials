@@ -14,7 +14,19 @@ const themes: Array<{ id: ThemeMode; label: string }> = [
 ];
 
 export function MorePage() {
-  const { snapshot, setTheme, recordPermission, syncLabel, syncDetail } = useApp();
+  const {
+    snapshot,
+    setTheme,
+    recordPermission,
+    syncLabel,
+    syncDetail,
+    sessionEmail,
+    remoteConfigured,
+    signOut,
+    requestSignIn,
+    loadSampleProject,
+    leaveSampleProject,
+  } = useApp();
   if (!snapshot) return null;
 
   async function onCamera() {
@@ -30,7 +42,36 @@ export function MorePage() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-black">More</h1>
-      <p>Guest mode is on. Sign-in is not required, and Phase 1 does not collect a password.</p>
+      <section className="space-y-2" aria-labelledby="account-heading">
+        <h2 id="account-heading" className="pmi-sheet-title">
+          Account
+        </h2>
+        {sessionEmail ? <p className="pmi-code text-base font-bold">{sessionEmail}</p> : <p>Not signed in.</p>}
+        <p className="text-sm text-pmi-muted">
+          {remoteConfigured
+            ? 'Signed-in records sync to the project database. Offline changes stay on this device until the connection returns.'
+            : 'This build has no database connection. Records stay on this device. A connected build uses email sign-in and syncs.'}
+        </p>
+        {sessionEmail ? (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={() => void signOut()}>
+            Sign out
+          </button>
+        ) : remoteConfigured ? (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={requestSignIn}>
+            Sign in
+          </button>
+        ) : null}
+        {snapshot.settings.sample ? (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={leaveSampleProject}>
+            Back to my project
+          </button>
+        ) : (
+          <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-bold" onClick={loadSampleProject}>
+            Load sample project
+          </button>
+        )}
+        <p className="text-sm text-pmi-muted">The sample project is optional and is not uploaded.</p>
+      </section>
       <InstallGuide />
 
       <section className="space-y-2" aria-labelledby="setup-links">
@@ -101,7 +142,8 @@ export function MorePage() {
         <p className="font-bold uppercase">{syncLabel}</p>
         <p className="text-sm text-pmi-muted">{syncDetail}</p>
         <ul className="space-y-1 text-sm">
-          <li>{SYNC_LABEL.offlineSaved} — records are on this device.</li>
+          <li>{SYNC_LABEL.offlineSaved} — this device is offline, or no database is connected.</li>
+          <li>{SYNC_LABEL.saved} — the change is on this device and waiting to sync.</li>
           <li>{SYNC_LABEL.syncing} — a connected database is receiving the queue.</li>
           <li>{SYNC_LABEL.syncComplete} — the connected database acknowledged the queue.</li>
         </ul>

@@ -25,6 +25,8 @@ function id(n: number): string {
   return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 }
 
+export const SAMPLE_PROJECT_ID = id(1);
+
 export function buildDemoData(today: string): AppSnapshot {
   const tomorrow = addIsoDays(today, 1);
   const project: ProjectRecord = {
@@ -556,6 +558,8 @@ export function buildDemoData(today: string): AppSnapshot {
     settings: {
       theme: 'light',
       guest: true,
+      sample: true,
+      accountEmail: '',
       lastCamera: null,
       lastGps: null,
     },

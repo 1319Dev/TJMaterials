@@ -151,12 +151,16 @@ a {
 }
 
 .pmi-guest {
+  max-width: 11rem;
+  overflow: hidden;
   border: 2px solid var(--pmi-hold);
   color: var(--pmi-hold);
   padding: 0.2rem 0.45rem;
   font-size: 0.7rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pmi-sheet-title {

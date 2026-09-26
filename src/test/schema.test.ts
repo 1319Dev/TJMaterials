@@ -87,3 +87,21 @@ describe('initial schema', () => {
     expect(sql).not.toMatch(/acceptable/i);
   });
 });
+
+describe('mtr request sync table', () => {
+  const requestSql = readFileSync(
+    path.resolve(process.cwd(), 'supabase/migrations/20260926230000_mtr_requests.sql'),
+    'utf8',
+  );
+
+  test('stores drafts behind project membership and keeps anon out', () => {
+    expect(requestSql).toContain('create table public.mtr_requests');
+    expect(requestSql).toContain('alter table public.mtr_requests enable row level security');
+    expect(requestSql).toContain('alter table public.mtr_requests force row level security');
+    expect(requestSql).toContain('private.is_project_member(project_id)');
+    expect(requestSql).toContain('private.can_edit_project(project_id)');
+    expect(requestSql).toContain('revoke all on table public.mtr_requests from public, anon, authenticated');
+    expect(requestSql).not.toContain('grant select, insert, update on table public.mtr_requests to anon');
+    expect(requestSql).toContain('https://1319dev.github.io/TJMaterials/auth/callback');
+  });
+});

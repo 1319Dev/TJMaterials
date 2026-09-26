@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react';
 import { expect, test } from 'vitest';
 import { buildDemoData } from '../domain/demo-data';
+import { emptySnapshot } from '../domain/empty';
 import { localIsoDate } from '../domain/dates';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { renderAt } from './render';
@@ -75,6 +76,22 @@ test('outdoor theme is an explicit choice', () => {
   renderAt(demo, '/more');
   fireEvent.click(screen.getByRole('button', { name: 'Outdoor high-contrast' }));
   expect(document.documentElement.dataset.theme).toBe('outdoor');
+});
+
+test('a new project starts empty until material is received', () => {
+  renderAt(emptySnapshot());
+  expect(screen.getByRole('heading', { name: 'Start a project' })).toBeInTheDocument();
+  expect(screen.queryByText('Guest Demo Spread')).not.toBeInTheDocument();
+  expect(screen.queryByText('PMI-PIPE-000001')).not.toBeInTheDocument();
+  expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
+});
+
+test('sample project is optional from More and is labeled as a sample', () => {
+  renderAt(emptySnapshot(), '/more');
+  fireEvent.click(screen.getByRole('button', { name: 'Load sample project' }));
+  expect(screen.getByText(/SAMPLE PROJECT/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'Home' }));
+  expect(screen.getByRole('heading', { name: 'Guest Demo Spread' })).toBeInTheDocument();
 });
 
 test('camera and GPS stubs do not invent a capture when the device API is missing', async () => {

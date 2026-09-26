@@ -331,7 +331,9 @@ export interface PermissionNote {
 
 export interface AppSettings {
   theme: ThemeMode;
-  guest: true;
+  guest: boolean;
+  sample: boolean;
+  accountEmail: string;
   lastCamera: PermissionNote | null;
   lastGps: PermissionNote | null;
 }
