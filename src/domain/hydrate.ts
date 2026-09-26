@@ -19,7 +19,7 @@ function mergeById<T extends { id: string }>(current: readonly T[], extras: read
 }
 
 export function ensurePhase2(snapshot: AppSnapshot, today = localIsoDate()): AppSnapshot {
-  if (hasPhase2(snapshot) && snapshot.settings.sample !== undefined && snapshot.settings.accountEmail !== undefined) {
+  if (hasPhase2(snapshot) && snapshot.settings.sample !== undefined) {
     return snapshot;
   }
   const withSettings = { ...snapshot, settings: normalizeSettings(snapshot.settings) };

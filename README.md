@@ -6,41 +6,24 @@ Open it in mobile Safari at `https://1319dev.github.io/TJMaterials/`. To keep an
 
 Not an official Atmos Energy or TJ Inspection application. The app records what an inspector enters. It does not decide that material is acceptable.
 
-## Sign-in and sync
+## On this device
 
-The home screen is an inspector’s project, not a guest demo. A new project starts empty. Material is added only when someone receives it.
+The home screen is the inspector’s project. A new project starts empty. Material is added only when someone receives it. IndexedDB is the store. There is no account and no cloud sync.
 
-IndexedDB is the offline cache. When `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set at build time, the app signs in with email and password or an email sign-in link, then uploads the queue and pulls that inspector’s project memberships. Row level security is in the SQL migrations: an inspector only reads projects they belong to.
+The status line stays **OFFLINE — SAVED LOCALLY**. Records remain in this browser.
 
-Status labels:
-
-- **OFFLINE — SAVED LOCALLY** — no connection, or this build has no database settings
-- **SAVED** — the change is on this device and waiting to sync
-- **SYNCING** — the queue is being sent
-- **SYNC COMPLETE** — the database acknowledged the queue
-
-Auth Site URL: `https://1319dev.github.io/TJMaterials/`
-
-Redirect allow list:
-
-- `https://1319dev.github.io/TJMaterials/`
-- `https://1319dev.github.io/TJMaterials/auth/callback`
-- `http://localhost:5173/TJMaterials/auth/callback`
-
-GitHub Actions secrets for the Pages build use the same names: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Use the anon (publishable) key. Do not put the service role key in the site.
-
-More → **Load sample project** opens the optional sample spread on this device. It is labeled SAMPLE and is not uploaded. **Back to my project** returns to the empty or synced project.
+More → **Load sample project** opens optional practice records. **Back to my project** returns to the inspector’s project. The sample is not the default home screen.
 
 ## Phase 1
 
-Records stay available on the device when the network drops. The earlier guest-only build is replaced by the sign-in path above.
+Records stay available on the device when the network drops.
 
 - Mobile shell with Home, Receive, Inventory, Search, and More
 - Project setup and local document metadata
 - Material receiving (delivery header, packing slip / BOL, photo and GPS stubs, line items)
 - Search by heat, joint, serial, PO, BOL, manufacturer, or Material ID
 - Light, dark, and high-contrast outdoor themes
-- Supabase schema in `supabase/migrations` (not applied from the static site)
+- SQL notes in `supabase/migrations` are unused by this site. The running app does not connect to a database.
 
 Material IDs look like `PMI-PIPE-000001`.
 

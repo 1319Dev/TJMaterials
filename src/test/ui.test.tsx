@@ -10,8 +10,8 @@ const demo = buildDemoData(localIsoDate());
 
 test('home shows the project, queue state, and receive action', () => {
   renderAt(demo);
-  expect(screen.getByRole('heading', { name: 'Guest Demo Spread' })).toBeInTheDocument();
-  expect(screen.getByText('Guest Demo Spread')).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Northline Spread A' })).toBeInTheDocument();
+  expect(screen.getByText('Northline Spread A')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /TODAY'S DELIVERIES/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /MATERIAL ON HOLD/ })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /MISSING MTRs/ })).toBeInTheDocument();
@@ -81,7 +81,7 @@ test('outdoor theme is an explicit choice', () => {
 test('a new project starts empty until material is received', () => {
   renderAt(emptySnapshot());
   expect(screen.getByRole('heading', { name: 'Start a project' })).toBeInTheDocument();
-  expect(screen.queryByText('Guest Demo Spread')).not.toBeInTheDocument();
+  expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
   expect(screen.queryByText('PMI-PIPE-000001')).not.toBeInTheDocument();
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
 });
@@ -89,9 +89,11 @@ test('a new project starts empty until material is received', () => {
 test('sample project is optional from More and is labeled as a sample', () => {
   renderAt(emptySnapshot(), '/more');
   fireEvent.click(screen.getByRole('button', { name: 'Load sample project' }));
-  expect(screen.getByText(/SAMPLE PROJECT/)).toBeInTheDocument();
+  expect(screen.getByText('Sample project.')).toBeInTheDocument();
+  expect(screen.queryByText(/SYNC COMPLETE/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('link', { name: 'Home' }));
-  expect(screen.getByRole('heading', { name: 'Guest Demo Spread' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Northline Spread A' })).toBeInTheDocument();
 });
 
 test('camera and GPS stubs do not invent a capture when the device API is missing', async () => {

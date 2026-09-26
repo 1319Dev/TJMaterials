@@ -56,7 +56,7 @@ export async function loadSnapshot(): Promise<AppSnapshot | null> {
     });
     const stored =
       normalized.project.id === SAMPLE_PROJECT_ID
-        ? { ...normalized, settings: { ...normalized.settings, sample: true, guest: true } }
+        ? { ...normalized, settings: { ...normalized.settings, sample: true } }
         : normalized;
     if (stored !== existing) await database.put('snapshot', stored, SNAPSHOT_KEY);
     return stored;

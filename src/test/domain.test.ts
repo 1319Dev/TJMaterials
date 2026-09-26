@@ -5,7 +5,7 @@ import { isMaterialCode, nextMaterialCode } from '../domain/ids';
 import { fileMetadata, updateProject } from '../domain/records';
 import { createReceipt, emptyReceiveLine } from '../domain/receive';
 import { searchRecords } from '../domain/search';
-import { SYNC_LABEL, applySyncResult, describeSync } from '../domain/sync';
+import { SYNC_LABEL, describeSync } from '../domain/sync';
 import type { ReceiveInput } from '../domain/receive';
 
 const today = '2026-09-26';
@@ -17,9 +17,9 @@ function ids() {
 }
 
 describe('demo dashboard', () => {
-  test('counts the guest spread for a fixed day', () => {
+  test('counts the sample spread for a fixed day', () => {
     const summary = summarizeDashboard(demo, today);
-    expect(summary.projectName).toBe('Guest Demo Spread');
+    expect(summary.projectName).toBe('Northline Spread A');
     expect(summary.todaysDeliveries).toBe(2);
     expect(summary.materialReceivedToday).toBe(10);
     expect(summary.materialOnHold).toBe(1);
@@ -135,37 +135,12 @@ describe('receiving', () => {
 });
 
 describe('sync states', () => {
-  test('uses the three queue labels without claiming a remote ack', () => {
-    expect(
-      describeSync({ online: false, pending: 1, syncing: false, remoteConfigured: false, lastAckAt: null }).label,
-    ).toBe(SYNC_LABEL.offlineSaved);
-    expect(
-      describeSync({ online: true, pending: 1, syncing: true, remoteConfigured: true, lastAckAt: null }).label,
-    ).toBe(SYNC_LABEL.syncing);
-    expect(
-      describeSync({
-        online: true,
-        pending: 0,
-        syncing: false,
-        remoteConfigured: true,
-        lastAckAt: '2026-09-26T18:00:00.000Z',
-      }).label,
-    ).toBe(SYNC_LABEL.syncComplete);
-    expect(
-      describeSync({ online: true, pending: 2, syncing: false, remoteConfigured: false, lastAckAt: null }).label,
-    ).toBe(SYNC_LABEL.offlineSaved);
-    expect(
-      describeSync({ online: true, pending: 1, syncing: false, remoteConfigured: true, lastAckAt: null }).label,
-    ).toBe(SYNC_LABEL.saved);
-  });
-
-  test('acks only when the transport says so', () => {
-    const queue = [{ id: '1', entityType: 'deliveries', entityId: 'd', op: 'upsert' as const, createdAt: today, status: 'pending' as const, ackedAt: null }];
-    expect(applySyncResult(queue, 'not_configured', '2026-09-26T18:00:00.000Z')[0]?.status).toBe('pending');
-    expect(applySyncResult(queue, 'acked', '2026-09-26T18:00:00.000Z')[0]).toMatchObject({
-      status: 'complete',
-      ackedAt: '2026-09-26T18:00:00.000Z',
-    });
+  test('stays saved on this device and does not report a cloud ack', () => {
+    expect(describeSync({ pending: 0 }).label).toBe(SYNC_LABEL.offlineSaved);
+    expect(describeSync({ pending: 2 }).label).toBe(SYNC_LABEL.offlineSaved);
+    expect(describeSync({ pending: 2 }).detail).toMatch(/2 changes saved on this device/);
+    expect(describeSync({ pending: 0 }).detail).not.toMatch(/sync complete/i);
+    expect(JSON.stringify(SYNC_LABEL)).not.toMatch(/SYNC COMPLETE/);
   });
 });
 

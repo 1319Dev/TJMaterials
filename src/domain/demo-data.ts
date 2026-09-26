@@ -31,17 +31,17 @@ export function buildDemoData(today: string): AppSnapshot {
   const tomorrow = addIsoDays(today, 1);
   const project: ProjectRecord = {
     id: id(1),
-    name: 'Guest Demo Spread',
+    name: 'Northline Spread A',
     projectNumber: 'PRJ-2044',
     constructionOrderNo: 'CO-7781',
     atmosProjectNumber: 'AP-44821',
     inspectorName: 'Alex Rivera',
     vendor: 'Northline Pipe Supply',
     salesOrderOrCustomerPo: 'SO-77821 / PO-45021',
-    clientName: 'High Plains Transmission Demo',
+    clientName: 'High Plains Transmission',
     spread: 'Spread A',
     locationName: 'Laydown Yard 2',
-    notes: 'Guest demo loaded on this device. Figures are sample records, not a live project.',
+    notes: 'Optional sample records for field practice.',
     status: 'active',
   };
 
@@ -557,9 +557,7 @@ export function buildDemoData(today: string): AppSnapshot {
     queue: [],
     settings: {
       theme: 'light',
-      guest: true,
       sample: true,
-      accountEmail: '',
       lastCamera: null,
       lastGps: null,
     },

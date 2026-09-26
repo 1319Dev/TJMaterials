@@ -4,9 +4,7 @@ export function normalizeSettings(settings?: Partial<AppSettings> | null): AppSe
   const theme: ThemeMode = settings?.theme ?? 'light';
   return {
     theme,
-    guest: settings?.guest ?? false,
     sample: settings?.sample ?? false,
-    accountEmail: settings?.accountEmail ?? '',
     lastCamera: settings?.lastCamera ?? null,
     lastGps: settings?.lastGps ?? null,
   };

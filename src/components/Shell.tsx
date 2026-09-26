@@ -2,11 +2,10 @@ import { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useApp } from '../state/AppState';
 import { BottomNav } from './BottomNav';
-import { SignInPage } from '../pages/SignInPage';
 import { Disclaimer } from './ui';
 
 export function Shell() {
-  const { ready, error, syncLabel, syncDetail, locked, sessionEmail, snapshot } = useApp();
+  const { ready, error, syncLabel, syncDetail, snapshot } = useApp();
   const location = useLocation();
   const onInstallPage = location.pathname.endsWith('/more');
   const onHome = location.pathname === '/';
@@ -42,12 +41,7 @@ export function Shell() {
         Skip to content
       </a>
       <header className="pmi-mast -mx-3 mb-3 space-y-2 pt-[max(0.7rem,env(safe-area-inset-top))]">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-black uppercase tracking-widest">Pipeline Material Inspector</p>
-          <span className="pmi-guest">
-            {snapshot?.settings.sample ? 'SAMPLE' : sessionEmail ? sessionEmail : 'THIS DEVICE'}
-          </span>
-        </div>
+        <p className="text-sm font-black uppercase tracking-widest">Pipeline Material Inspector</p>
         <p className="pmi-sync" role="status" aria-live="polite" data-testid="sync-status">
           <span className="block uppercase">{syncLabel}</span>
           <span className="pmi-sheet-quiet mt-0.5 block font-medium">{syncDetail}</span>
@@ -66,20 +60,17 @@ export function Shell() {
           </p>
         ) : null}
         {!ready && !error ? <p className="text-lg">Opening records stored on this device…</p> : null}
-        {ready && locked ? <SignInPage /> : null}
-        {ready && !locked && snapshot?.settings.sample ? (
-          <p className="mb-3 border-2 border-pmi-hold bg-pmi-card px-3 py-2 text-sm font-bold">
-            SAMPLE PROJECT. These records are not uploaded.
-          </p>
+        {ready && snapshot?.settings.sample ? (
+          <p className="mb-3 border-2 border-pmi-border bg-pmi-card px-3 py-2 text-sm font-bold">Sample project.</p>
         ) : null}
-        {ready && !locked && !onHome && snapshot && !snapshot.settings.sample && !snapshot.project.name.trim() ? (
+        {ready && !onHome && snapshot && !snapshot.settings.sample && !snapshot.project.name.trim() ? (
           <p className="mb-3 border-2 border-pmi-border bg-pmi-card px-3 py-2 text-sm font-bold">
             Name the project on Home before receiving material. Nothing is invented for you.
           </p>
         ) : null}
-        {ready && !locked ? <Outlet /> : null}
+        {ready ? <Outlet /> : null}
       </main>
-      {locked ? null : <BottomNav />}
+      <BottomNav />
     </div>
   );
 }

@@ -5,6 +5,5 @@ dev-dist
 *.local
 .env
 .env.*
-!.env.example
 supabase/.temp
 .supabase
