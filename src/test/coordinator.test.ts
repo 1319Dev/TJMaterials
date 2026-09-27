@@ -131,6 +131,41 @@ test('packing slip OCR parses fixture text and flags an uncertain line', () => {
   expect(parsed.proposals[1]?.qty).toBe('?');
 });
 
+test('collapsed single-space OCR still proposes editable review rows', () => {
+  const text = [
+    'CONSTRUCTION ORDER NO: CO0-8841',
+    '',
+    'PROJECT NUMBER: PN-220',
+    '',
+    'PACKING SLIP #: PS-1902',
+    '',
+    'ITEM QTY SIZE (INCHES) DESCRIPTION',
+    '1 12 8 ELBOW 90',
+    '',
+    '2 4 6 TEE',
+  ].join('\n');
+  const parsed = parsePackingSlipText(text);
+  expect(parsed.constructionOrderNo).toBe('CO0-8841');
+  expect(parsed.projectNumber).toBe('PN-220');
+  expect(parsed.packingSlipNumber).toBe('PS-1902');
+  expect(parsed.proposals).toHaveLength(2);
+  expect(parsed.proposals[0]).toMatchObject({
+    item: '1',
+    qty: '12',
+    sizeInches: '8',
+    description: 'ELBOW 90',
+    uncertain: true,
+  });
+  expect(parsed.proposals[1]).toMatchObject({
+    item: '2',
+    qty: '4',
+    sizeInches: '6',
+    description: 'TEE',
+    uncertain: true,
+  });
+  expect(parsed.proposals.every((row) => row.uncertain)).toBe(true);
+});
+
 test('confirmed OCR rows merge into the tracker and never auto-accept', () => {
   const demo = buildDemoData('2026-09-26');
   const before = demo.materials.map((material) => [material.id, material.verificationStatus]);
