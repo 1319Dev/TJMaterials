@@ -83,6 +83,24 @@ export function HomePage() {
         )}
       </section>
 
+      <Link
+        to="/daily"
+        className="flex min-h-16 items-center justify-center border-l-8 border-l-pmi-hold bg-pmi-ink px-3 text-center text-lg font-black tracking-wide text-pmi-sheet-text"
+      >
+        DAILY MATERIALS RECEIVE
+      </Link>
+      <nav aria-label="Coordinator" className="grid grid-cols-3 gap-2">
+        <Link to="/packing-slips" className="flex min-h-14 items-center justify-center border-2 border-pmi-border bg-pmi-card px-2 text-center text-sm font-black">
+          Packing slips
+        </Link>
+        <Link to="/mtrs" className="flex min-h-14 items-center justify-center border-2 border-pmi-border bg-pmi-card px-2 text-center text-sm font-black">
+          MTRs
+        </Link>
+        <Link to="/tracker" className="flex min-h-14 items-center justify-center border-2 border-pmi-border bg-pmi-card px-2 text-center text-sm font-black">
+          Tracker
+        </Link>
+      </nav>
+
       <SpecialtyNav />
 
       <section aria-label="Today">

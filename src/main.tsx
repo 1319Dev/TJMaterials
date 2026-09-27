@@ -4,7 +4,7 @@ import { App } from './App';
 import { AppProvider } from './state/AppState';
 import './index.css';
 
-const CLIENT_BUILD = 'pmi-field-3';
+const CLIENT_BUILD = 'pmi-field-4';
 
 async function dropStaleAppCache() {
   try {
@@ -18,7 +18,7 @@ async function dropStaleAppCache() {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
         registrations
-          .filter((registration) => !registration.active?.scriptURL.includes('sw-field-3.js'))
+          .filter((registration) => !registration.active?.scriptURL.includes('sw-field-4.js'))
           .map((registration) => registration.unregister()),
       );
     }

@@ -553,6 +553,14 @@ export function buildDemoData(today: string): AppSnapshot {
     damageReports,
     discrepancies,
     mtrRequests: [],
+    packingSlips: [],
+    tracker: {
+      constructionOrderNo: '',
+      projectNumber: '',
+      sourceFileName: '',
+      importedAt: null,
+      rows: [],
+    },
     auditLogs,
     queue: [],
     settings: {
