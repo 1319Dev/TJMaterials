@@ -67,6 +67,35 @@ export function CustodyChip({ status }: { status: CustodyStatus }) {
   );
 }
 
+export function CaptureActions({
+  cameraLabel,
+  uploadLabel,
+  onFile,
+}: {
+  cameraLabel: string;
+  uploadLabel: string;
+  onFile: (file: File) => void;
+}) {
+  function take(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (file) onFile(file);
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-2">
+      <label className="flex min-h-14 cursor-pointer items-center justify-center border-2 border-pmi-border bg-pmi-card px-3 text-center text-lg font-black">
+        {cameraLabel}
+        <input className="sr-only" type="file" accept="image/*" capture="environment" onChange={take} />
+      </label>
+      <label className="flex min-h-14 cursor-pointer items-center justify-center border-2 border-dashed border-pmi-border bg-pmi-card px-3 text-center text-lg font-black">
+        {uploadLabel}
+        <input className="sr-only" type="file" accept="image/*" onChange={take} />
+      </label>
+    </div>
+  );
+}
+
 export function PhotoSlot({
   caption,
   filled,

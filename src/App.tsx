@@ -1,6 +1,10 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Shell } from './components/Shell';
+import { DailyReceivePage } from './pages/DailyReceivePage';
 import { HomePage } from './pages/HomePage';
+import { MtrDeskPage } from './pages/MtrDeskPage';
+import { PackingSlipsPage } from './pages/PackingSlipsPage';
+import { TrackerPage } from './pages/TrackerPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { MorePage } from './pages/MorePage';
 import { MtrRequestPage } from './pages/MtrRequestPage';
@@ -23,7 +27,11 @@ export function AppRoutes() {
     <Routes>
       <Route element={<Shell />}>
         <Route index element={<HomePage />} />
+        <Route path="daily" element={<DailyReceivePage />} />
         <Route path="receive" element={<ReceivePage />} />
+        <Route path="packing-slips" element={<PackingSlipsPage />} />
+        <Route path="mtrs" element={<MtrDeskPage />} />
+        <Route path="tracker" element={<TrackerPage />} />
         <Route path="tally" element={<TallyPage />} />
         <Route path="fittings" element={<FittingListPage />} />
         <Route path="fittings/:fittingId" element={<FittingFormPage />} />

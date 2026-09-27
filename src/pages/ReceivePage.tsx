@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { localIsoDate } from '../domain/dates';
+import { readBlob } from '../lib/blob';
 import { collectMaterialCodes, nextMaterialCode } from '../domain/ids';
 import { CATEGORY_LABELS } from '../domain/labels';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
@@ -7,10 +9,12 @@ import { emptyReceiveLine, receiveDefaults, type PhotoStubInput, type ReceiveInp
 import type { MaterialCategory } from '../domain/types';
 import { useApp } from '../state/AppState';
 import { SpecialtyNav } from '../components/SpecialtyNav';
-import { PhotoSlot, SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
+import { CaptureActions, PhotoSlot, SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
 
 export function ReceivePage() {
   const { snapshot, saveReceipt, recordPermission } = useApp();
+  const [params] = useSearchParams();
+  const fromDaily = params.get('from') === 'daily';
   const today = localIsoDate();
   const [form, setForm] = useState<ReceiveInput | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -69,22 +73,39 @@ export function ReceivePage() {
     });
   }
 
+  function rememberFile(file: File, docType: 'packing_slip' | 'bol', role: 'packing_slip' | 'bol', caption: string) {
+    void readBlob(file).then((buffer) => {
+      update({
+        documents: [
+          ...formValue.documents,
+          {
+            docType,
+            title: file.name || caption,
+            fileName: file.name || `${caption}.jpg`,
+            mimeType: file.type || 'image/jpeg',
+            byteSize: file.size,
+            bytes: new Uint8Array(buffer),
+          },
+        ],
+        photoStubs: [
+          ...formValue.photoStubs,
+          {
+            role,
+            caption,
+            permissionStatus: 'granted',
+            message: 'Photo stored on this device.',
+            byteSize: file.size,
+          },
+        ],
+      });
+    });
+  }
+
   function onFile(event: React.ChangeEvent<HTMLInputElement>, docType: 'packing_slip' | 'bol') {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
-    update({
-      documents: [
-        ...formValue.documents,
-        {
-          docType,
-          title: file.name,
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
-          byteSize: file.size,
-        },
-      ],
-    });
+    rememberFile(file, docType, docType, file.name);
   }
 
   function onSubmit(event: React.FormEvent) {
@@ -105,6 +126,11 @@ export function ReceivePage() {
     <form className="space-y-5" onSubmit={onSubmit}>
       <div>
         <h1 className="text-2xl font-black">Receive material</h1>
+        {fromDaily ? (
+          <p className="mt-2 border-l-8 border-l-pmi-hold bg-pmi-ink px-3 py-2 text-base font-black text-pmi-sheet-text">
+            Daily materials receive. This receipt stays REVIEW REQUIRED.
+          </p>
+        ) : null}
         <p className="mt-1 text-sm text-pmi-muted">
           Saved on this device as REVIEW REQUIRED. Heat numbers, photos, and coordinates are stored only when you enter them.
         </p>
@@ -170,26 +196,20 @@ export function ReceivePage() {
         <Field label="BOL #">
           <input className={codeControlClass} {...codeFieldProps} value={active.bolNumber} onChange={(event) => update({ bolNumber: event.target.value })} />
         </Field>
-        <div className="grid grid-cols-1 gap-2">
-          {(
-            [
-              ['packing_slip', 'PACKING SLIP'],
-              ['bol', 'BOL'],
-            ] as const
-          ).map(([role, caption]) => {
-            const stub = [...active.photoStubs].reverse().find((item) => item.caption === caption);
-            return (
-              <PhotoSlot
-                key={caption}
-                caption={caption}
-                filled={Boolean(stub)}
-                detail={stub ? `${stub.message} NO BYTES stored.` : 'Tap to open a capture slot. No photo bytes are stored.'}
-                onCapture={() => onCamera(role, caption)}
-              />
-            );
-          })}
-        </div>
-        <Field label="Attach packing slip file" hint="Metadata and the file stay on this device.">
+        <CaptureActions
+          cameraLabel="Packing slip camera"
+          uploadLabel="Upload packing slip photo"
+          onFile={(file) => rememberFile(file, 'packing_slip', 'packing_slip', 'PACKING SLIP')}
+        />
+        <CaptureActions
+          cameraLabel="BOL camera"
+          uploadLabel="Upload BOL photo"
+          onFile={(file) => rememberFile(file, 'bol', 'bol', 'BOL')}
+        />
+        {active.photoStubs.some((stub) => stub.byteSize && stub.byteSize > 0) ? (
+          <p className="text-sm font-bold">Photo stored on this device. It is saved with the delivery.</p>
+        ) : null}
+        <Field label="Attach packing slip file" hint="The file stays on this device.">
           <input className={controlClass} type="file" onChange={(event) => onFile(event, 'packing_slip')} />
         </Field>
         <Field label="Attach BOL file">

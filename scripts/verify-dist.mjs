@@ -18,6 +18,9 @@ if (!existsSync(path.join(dist, '404.html'))) {
 if (!existsSync(path.join(dist, '.nojekyll'))) {
   throw new Error('dist/.nojekyll is missing.');
 }
+for (const asset of ['ocr/worker.min.js', 'ocr/eng.traineddata.gz', 'ocr/core/tesseract-core-simd-lstm.wasm.js']) {
+  if (!existsSync(path.join(dist, asset))) throw new Error(`OCR asset missing from dist: ${asset}`);
+}
 
 function walk(dir) {
   const found = [];

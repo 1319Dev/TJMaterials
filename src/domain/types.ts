@@ -240,7 +240,7 @@ export interface PhotoRecord {
   projectId: string;
   subjectType: string;
   subjectId: string;
-  role: 'packing_slip' | 'bol' | 'material' | 'damage' | 'other';
+  role: 'packing_slip' | 'bol' | 'material' | 'damage' | 'mtr' | 'other';
   caption: string;
   permissionStatus: GpsStatus;
   byteSize: number;
@@ -311,6 +311,50 @@ export interface MtrRequestRecord {
   statusNote: string;
 }
 
+export type TrackerSource = 'import' | 'ocr' | 'manual';
+
+export interface TrackerRow {
+  id: string;
+  item: string;
+  qty: string;
+  sizeInches: string;
+  description: string;
+  wallSdr: string;
+  steelGrade: string;
+  manufacturer: string;
+  modelNumber: string;
+  serialLotHeat: string;
+  ansiPressureRating: string;
+  source: TrackerSource;
+  verificationStatus: VerificationStatus;
+  confidence: number | null;
+  uncertain: boolean;
+  reviewNote: string;
+  deliveryId: string | null;
+  documentId: string | null;
+}
+
+export interface TrackerSheet {
+  constructionOrderNo: string;
+  projectNumber: string;
+  sourceFileName: string;
+  importedAt: string | null;
+  rows: TrackerRow[];
+}
+
+export interface PackingSlipRecord {
+  id: string;
+  projectId: string;
+  deliveryId: string | null;
+  packingSlipNumber: string;
+  bolNumber: string;
+  shipmentNumberMrc: string;
+  vendor: string;
+  receivedOn: string;
+  notes: string;
+  createdAt: string;
+}
+
 export interface SyncQueueItem {
   id: string;
   entityType: string;
@@ -353,6 +397,8 @@ export interface AppSnapshot {
   damageReports: DamageReportRecord[];
   discrepancies: DiscrepancyRecord[];
   mtrRequests: MtrRequestRecord[];
+  packingSlips: PackingSlipRecord[];
+  tracker: TrackerSheet;
   auditLogs: AuditLogRecord[];
   queue: SyncQueueItem[];
   settings: AppSettings;

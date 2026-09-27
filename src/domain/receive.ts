@@ -36,6 +36,7 @@ export interface PhotoStubInput {
   permissionStatus: Exclude<GpsStatus, 'not_provided'>;
   message: string;
   caption?: string;
+  byteSize?: number;
 }
 
 export interface GpsInput {
@@ -64,6 +65,7 @@ export interface ReceiveInput {
     fileName: string;
     mimeType: string;
     byteSize: number;
+    bytes?: Uint8Array;
   }>;
 }
 
@@ -274,17 +276,20 @@ export function createReceipt(
     }
   }
 
-  const photos: PhotoRecord[] = input.photoStubs.map((stub) => ({
-    id: ctx.newId(),
-    projectId: snapshot.project.id,
-    subjectType: 'delivery',
-    subjectId: delivery.id,
-    role: stub.role,
-    caption: [stub.caption, stub.message].filter(Boolean).join(' — '),
-    permissionStatus: stub.permissionStatus,
-    byteSize: 0,
-    capturedAt: null,
-  }));
+  const photos: PhotoRecord[] = input.photoStubs.map((stub) => {
+    const byteSize = stub.byteSize && stub.byteSize > 0 ? stub.byteSize : 0;
+    return {
+      id: ctx.newId(),
+      projectId: snapshot.project.id,
+      subjectType: 'delivery',
+      subjectId: delivery.id,
+      role: stub.role,
+      caption: [stub.caption, stub.message].filter(Boolean).join(' — '),
+      permissionStatus: stub.permissionStatus,
+      byteSize,
+      capturedAt: byteSize > 0 ? nowIso : null,
+    };
+  });
 
   const documents: DocumentRecord[] = input.documents.map((document) => ({
     id: ctx.newId(),

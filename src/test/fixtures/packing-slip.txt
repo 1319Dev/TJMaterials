@@ -1,0 +1,7 @@
+Construction Order No: CO-8841
+Project Number: PN-220
+Packing Slip #: PS-1902
+
+Item  QTY  Size (Inches)  Description  Wall/SDR  Steel Grade  Manufacturer  Model Number  Serial/Lot/Heat #  ANSI/Pressure Rating
+1  12  8  8 IN STD ELL 90  STD  WPHY 52  WELDBEND  WB-90-8  H12345  CLASS 600
+2  ?  6  ??? TEE  SCH 40  A105  FORGECO  FL-6  LOT-9  600

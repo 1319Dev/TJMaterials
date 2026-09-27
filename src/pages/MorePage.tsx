@@ -42,6 +42,18 @@ export function MorePage() {
         <Link to="/mtr-request" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
           MTR request
         </Link>
+        <Link to="/daily" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
+          Daily materials receive
+        </Link>
+        <Link to="/packing-slips" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
+          Packing slips
+        </Link>
+        <Link to="/mtrs" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
+          MTRs
+        </Link>
+        <Link to="/tracker" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
+          Materials tracker
+        </Link>
       </section>
 
       <section className="space-y-2" aria-labelledby="tally-links">

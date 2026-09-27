@@ -11,10 +11,13 @@ import {
   saveSnapshot,
 } from '../data/db';
 import { localIsoDate } from '../domain/dates';
+import { readBlob as readFileBytes } from '../lib/blob';
 import { buildDemoData } from '../domain/demo-data';
 import { emptySnapshot } from '../domain/empty';
 import { createReceipt, type ReceiveInput, type ReceiveResult } from '../domain/receive';
+import { addPackingSlip, attachImageRecord, type PackingSlipInput } from '../domain/coordinator';
 import { addDocument, removeDocument, saveMtrRequest, updateProject } from '../domain/records';
+import { applyTrackerProposals, importTrackerSheet, type OcrProposal, type ParsedTracker } from '../domain/tracker';
 import {
   saveFitting as writeFitting,
   saveFlange as writeFlange,
@@ -25,7 +28,7 @@ import {
 } from '../domain/specialty';
 import { countPending, describeSync } from '../domain/sync';
 import { savePipeJoint as writePipeJoint, type PipeJointInput } from '../domain/tally';
-import type { AppSnapshot, MtrRequestLine, PermissionNote, ProjectRecord, ThemeMode } from '../domain/types';
+import type { AppSnapshot, DocumentRecord, MtrRequestLine, PermissionNote, PhotoRecord, ProjectRecord, ThemeMode } from '../domain/types';
 
 const NAME_FIRST = 'Name the project before adding material. Nothing was invented.';
 
@@ -51,6 +54,27 @@ interface AppContextValue {
     shipmentNumberMrc: string;
     lines: MtrRequestLine[];
   }) => string[];
+  savePackingSlip: (input: PackingSlipInput, file: File | null) => Promise<{ errors: string[]; id?: string }>;
+  captureImage: (
+    file: File,
+    input: {
+      docType: DocumentRecord['docType'];
+      subjectType: string;
+      subjectId: string;
+      role: PhotoRecord['role'];
+      caption: string;
+    },
+  ) => Promise<string | null>;
+  saveTracker: (parsed: ParsedTracker, fileName: string) => { errors: string[]; rowCount: number };
+  applyOcrRows: (
+    proposals: OcrProposal[],
+    options: {
+      documentId: string | null;
+      deliveryId: string | null;
+      constructionOrderNo?: string;
+      projectNumber?: string;
+    },
+  ) => { errors: string[]; applied: number };
   setTheme: (theme: ThemeMode) => void;
   recordPermission: (kind: 'camera' | 'gps', note: PermissionNote) => void;
   openDocument: (documentId: string) => Promise<string | null>;
@@ -133,7 +157,27 @@ export function AppProvider({
           now: new Date(),
           newId: () => crypto.randomUUID(),
         });
-        if (result.errors.length === 0) commit(result.snapshot);
+        if (result.errors.length === 0) {
+          const created = result.snapshot.documents.slice(snapshot.documents.length);
+          input.documents.forEach((document, index) => {
+            const bytes = document.bytes;
+            const stored = created[index];
+            if (!bytes || !stored || bytes.byteLength === 0) return;
+            const copy = new Uint8Array(bytes.byteLength);
+            copy.set(bytes);
+            memoryBlobs.current.set(stored.id, new Blob([copy], { type: stored.mimeType || 'application/octet-stream' }));
+            if (persist) {
+              void saveBlob({
+                id: stored.id,
+                bytes: copy,
+                fileName: stored.fileName,
+                mimeType: stored.mimeType,
+                byteSize: stored.byteSize,
+              });
+            }
+          });
+          commit(result.snapshot);
+        }
         return result;
       },
       savePipeJoint(input) {
@@ -193,7 +237,7 @@ export function AppProvider({
         if (persist) {
           await saveBlob({
             id: result.document.id,
-            bytes: new Uint8Array(await file.arrayBuffer()),
+            bytes: new Uint8Array(await readFileBytes(file)),
             fileName: file.name,
             mimeType: file.type || 'application/octet-stream',
             byteSize: file.size,
@@ -206,6 +250,89 @@ export function AppProvider({
         memoryBlobs.current.delete(documentId);
         if (persist) await deleteBlob(documentId);
         commit(removeDocument(snapshot, documentId));
+      },
+      async savePackingSlip(input, file) {
+        if (!snapshot) return { errors: ['Records are not loaded.'] };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST] };
+        const ctx = { now: new Date(), newId: () => crypto.randomUUID() };
+        const saved = addPackingSlip(snapshot, input, ctx);
+        if (saved.errors.length > 0 || !saved.id) return { errors: saved.errors };
+        let next = saved.snapshot;
+        if (file) {
+          const attached = attachImageRecord(
+            next,
+            {
+              docType: 'packing_slip',
+              subjectType: 'packing_slip',
+              subjectId: saved.id,
+              role: 'packing_slip',
+              caption: input.packingSlipNumber.trim() || 'Packing slip',
+              fileName: file.name || 'packing-slip.jpg',
+              mimeType: file.type || 'image/jpeg',
+              byteSize: file.size,
+            },
+            ctx,
+          );
+          const bytes = new Uint8Array(await readFileBytes(file));
+          memoryBlobs.current.set(attached.documentId, file);
+          if (persist) {
+            await saveBlob({
+              id: attached.documentId,
+              bytes,
+              fileName: file.name || 'packing-slip.jpg',
+              mimeType: file.type || 'image/jpeg',
+              byteSize: file.size,
+            });
+          }
+          next = attached.snapshot;
+        }
+        commit(next);
+        return { errors: [], id: saved.id };
+      },
+      async captureImage(file, input) {
+        if (!snapshot) return null;
+        if (!snapshot.project.name.trim()) return null;
+        const ctx = { now: new Date(), newId: () => crypto.randomUUID() };
+        const attached = attachImageRecord(
+          snapshot,
+          {
+            ...input,
+            fileName: file.name || 'photo.jpg',
+            mimeType: file.type || 'image/jpeg',
+            byteSize: file.size,
+          },
+          ctx,
+        );
+        const bytes = new Uint8Array(await readFileBytes(file));
+        memoryBlobs.current.set(attached.documentId, file);
+        if (persist) {
+          await saveBlob({
+            id: attached.documentId,
+            bytes,
+            fileName: file.name || 'photo.jpg',
+            mimeType: file.type || 'image/jpeg',
+            byteSize: file.size,
+          });
+        }
+        commit(attached.snapshot);
+        return attached.documentId;
+      },
+      saveTracker(parsed, fileName) {
+        if (!snapshot) return { errors: ['Records are not loaded.'], rowCount: 0 };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST], rowCount: 0 };
+        const result = importTrackerSheet(snapshot, parsed, { fileName }, { now: new Date(), newId: () => crypto.randomUUID() });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, rowCount: result.rowCount };
+      },
+      applyOcrRows(proposals, options) {
+        if (!snapshot) return { errors: ['Records are not loaded.'], applied: 0 };
+        if (!snapshot.project.name.trim()) return { errors: [NAME_FIRST], applied: 0 };
+        const result = applyTrackerProposals(snapshot, proposals, options, {
+          now: new Date(),
+          newId: () => crypto.randomUUID(),
+        });
+        if (result.errors.length === 0) commit(result.snapshot);
+        return { errors: result.errors, applied: result.applied };
       },
       saveRequest(input) {
         if (!snapshot) return ['Records are not loaded.'];
