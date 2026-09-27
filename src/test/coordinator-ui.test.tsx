@@ -16,6 +16,7 @@ function named() {
 test('home opens on the field project and offers daily receive', () => {
   renderAt(emptySnapshot());
   expect(screen.getByRole('link', { name: 'DAILY MATERIALS RECEIVE' })).toBeInTheDocument();
+  expect(screen.getByTestId('client-build')).toHaveTextContent('Build pmi-field-5');
   expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
   expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');

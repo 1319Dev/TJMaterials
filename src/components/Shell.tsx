@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { CLIENT_BUILD } from '../build-id';
 import { useApp } from '../state/AppState';
 import { BottomNav } from './BottomNav';
 import { Disclaimer } from './ui';
@@ -42,6 +43,9 @@ export function Shell() {
       </a>
       <header className="pmi-mast -mx-3 mb-3 space-y-2 pt-[max(0.7rem,env(safe-area-inset-top))]">
         <p className="text-sm font-black uppercase tracking-widest">Pipeline Material Inspector</p>
+        <p className="text-xs font-bold" data-testid="client-build">
+          Build {CLIENT_BUILD}
+        </p>
         <p className="pmi-sync" role="status" aria-live="polite" data-testid="sync-status">
           <span className="block uppercase">{syncLabel}</span>
           <span className="pmi-sheet-quiet mt-0.5 block font-medium">{syncDetail}</span>

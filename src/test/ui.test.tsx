@@ -18,6 +18,7 @@ test('home shows the project, queue state, and receive action', () => {
   expect(screen.getByRole('heading', { name: 'RECENT INSPECTIONS' })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Add to Home Screen' })).toBeInTheDocument();
+  expect(screen.getByTestId('client-build')).toHaveTextContent('Build pmi-field-5');
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
   expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
 });
@@ -81,6 +82,7 @@ test('outdoor theme is an explicit choice', () => {
 test('a new project opens on the field home with no material', () => {
   renderAt(emptySnapshot());
   expect(screen.getByRole('heading', { name: 'Project' })).toBeInTheDocument();
+  expect(screen.getByTestId('client-build')).toHaveTextContent('Build pmi-field-5');
   expect(screen.getByText('No material received yet.')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: '+ RECEIVE MATERIAL' })).toBeInTheDocument();
   expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
