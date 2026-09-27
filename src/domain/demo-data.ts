@@ -388,7 +388,7 @@ export function buildDemoData(today: string): AppSnapshot {
       subjectType: 'project',
       subjectId: project.id,
       addedAt: `${today}T13:00:00.000Z`,
-      notes: 'Metadata only. File bytes were not included in the demo seed.',
+      notes: 'Metadata only. No file bytes were stored.',
     },
     {
       id: id(51),
@@ -401,7 +401,7 @@ export function buildDemoData(today: string): AppSnapshot {
       subjectType: 'mtr',
       subjectId: id(30),
       addedAt: `${today}T13:05:00.000Z`,
-      notes: 'Metadata only. The PDF was not bundled with the demo.',
+      notes: 'Metadata only. No PDF bytes were stored.',
     },
   ];
 

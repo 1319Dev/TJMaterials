@@ -46,18 +46,34 @@ async function withDb<T>(fn: (database: IDBPDatabase<PmiSchema>) => Promise<T>):
   }
 }
 
+export function isSampleSnapshot(snapshot: AppSnapshot | null | undefined): boolean {
+  if (!snapshot?.project) return false;
+  const name = snapshot.project.name?.trim().toLowerCase() ?? '';
+  return snapshot.settings?.sample === true || snapshot.project.id === SAMPLE_PROJECT_ID || name === 'guest demo spread';
+}
+
 export async function loadSnapshot(): Promise<AppSnapshot | null> {
   return withDb(async (database) => {
     const existing = await database.get('snapshot', SNAPSHOT_KEY);
     if (!existing) return null;
+    if (isSampleSnapshot(existing)) {
+      const parked = await database.get('snapshot', LIVE_SNAPSHOT_KEY);
+      const live = parked && !isSampleSnapshot(parked) ? parked : null;
+      const next = live
+        ? ensurePhase2({
+            ...live,
+            settings: { ...normalizeSettings(live.settings), sample: false },
+          })
+        : emptySnapshot();
+      await database.put('snapshot', next, SNAPSHOT_KEY);
+      if (live) await database.delete('snapshot', LIVE_SNAPSHOT_KEY);
+      return next;
+    }
     const normalized = ensurePhase2({
       ...existing,
       settings: normalizeSettings(existing.settings),
     });
-    const stored =
-      normalized.project.id === SAMPLE_PROJECT_ID
-        ? { ...normalized, settings: { ...normalized.settings, sample: true } }
-        : normalized;
+    const stored = { ...normalized, settings: { ...normalized.settings, sample: false } };
     if (stored !== existing) await database.put('snapshot', stored, SNAPSHOT_KEY);
     return stored;
   });
