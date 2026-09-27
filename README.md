@@ -12,7 +12,7 @@ The home screen is the inspector’s project. A new project starts empty. Materi
 
 The status line stays **OFFLINE — SAVED LOCALLY**. Records remain in this browser.
 
-More → **Load sample project** opens optional practice records. **Back to my project** returns to the inspector’s project. The sample is not the default home screen.
+More → **Load sample project** opens optional practice records. **Back to my project** returns to the inspector’s project. The sample is not the default home screen. A practice project already stored on the phone is set aside on the next open, so the home stays empty until someone loads it again.
 
 ## Phase 1
 

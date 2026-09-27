@@ -1,7 +1,6 @@
 import { beforeEach, expect, test } from 'vitest';
 import { buildDemoData } from '../domain/demo-data';
 import {
-  clearParkedSnapshot,
   createEmptySnapshot,
   deleteBlob,
   loadParkedSnapshot,
@@ -37,11 +36,66 @@ test('starts with an empty project and keeps later edits', async () => {
   expect(second?.materials).toHaveLength(0);
 });
 
-test('backfills pipe joints and component rows when a phase 1 snapshot is opened', async () => {
+test('a stored sample is not the project that opens', async () => {
+  const sample = buildDemoData('2026-09-26');
+  sample.project.name = 'Guest Demo Spread';
+  await saveSnapshot(sample);
+  const loaded = await loadSnapshot();
+  expect(loaded?.settings.sample).toBe(false);
+  expect(loaded?.project.id).not.toBe(sample.project.id);
+  expect(loaded?.project.name).toBe('');
+  expect(loaded?.materials).toHaveLength(0);
+  expect(loaded?.pipeJoints).toHaveLength(0);
+  expect(JSON.stringify(loaded)).not.toMatch(/Northline Spread A|Guest Demo|PMI-PIPE-000001/);
+  const again = await loadSnapshot();
+  expect(again?.settings.sample).toBe(false);
+  expect(again?.project.name).toBe('');
+  expect(again?.materials).toHaveLength(0);
+});
+
+test('an old guest demo name does not open even with another id', async () => {
+  const sample = buildDemoData('2026-09-26');
+  sample.project.id = '33333333-3333-4333-8333-333333333333';
+  sample.project.name = 'Guest Demo Spread';
+  sample.settings.sample = false;
+  await saveSnapshot(sample);
+  const loaded = await loadSnapshot();
+  expect(loaded?.project.name).toBe('');
+  expect(loaded?.settings.sample).toBe(false);
+  expect(loaded?.materials).toHaveLength(0);
+});
+
+test('a stored sample marked only by its flag does not open', async () => {
+  const sample = buildDemoData('2026-09-26');
+  sample.project.id = '22222222-2222-4222-8222-222222222222';
+  sample.project.name = 'Northline Spread A';
+  sample.settings.sample = true;
+  await saveSnapshot(sample);
+  const loaded = await loadSnapshot();
+  expect(loaded?.settings.sample).toBe(false);
+  expect(loaded?.materials).toHaveLength(0);
+  expect(loaded?.project.name).toBe('');
+});
+
+test('a parked field project replaces a stored sample on open', async () => {
+  const named = createEmptySnapshot();
+  named.project.name = 'Yard copy';
+  await parkLiveSnapshot(named);
+  await saveSnapshot(buildDemoData('2026-09-26'));
+  const working = await loadSnapshot();
+  expect(working?.settings.sample).toBe(false);
+  expect(working?.project.name).toBe('Yard copy');
+  expect(working?.materials).toHaveLength(0);
+  expect(await loadParkedSnapshot()).toBeNull();
+});
+
+test('a phase 1 field project does not gain sample rows', async () => {
   const phase1 = buildDemoData('2026-09-26');
   const legacy = {
     ...phase1,
-    materials: phase1.materials.filter((material) => material.materialCode !== 'PMI-FIT-000004'),
+    project: { ...phase1.project, id: '11111111-1111-4111-8111-111111111111', name: 'Yard copy' },
+    settings: { ...phase1.settings, sample: false },
+    materials: [],
   } as AppSnapshot;
   delete (legacy as Partial<AppSnapshot>).pipeJoints;
   delete (legacy as Partial<AppSnapshot>).fittings;
@@ -49,25 +103,11 @@ test('backfills pipe joints and component rows when a phase 1 snapshot is opened
   delete (legacy as Partial<AppSnapshot>).valves;
   await saveSnapshot(legacy);
   const loaded = await loadSnapshot();
-  expect(loaded?.pipeJoints.some((joint) => joint.jointNumber === 'J-1041' && joint.lengthFt === 40.25)).toBe(true);
-  expect(loaded?.fittings.some((fitting) => fitting.grade === 'WPHY 70' && fitting.expectedGrade === 'WPHY 52')).toBe(true);
-  expect(loaded?.valves.some((valve) => valve.actuatorSerial === 'ACT-88321')).toBe(true);
-});
-
-test('parking keeps the named project when the working copy is the sample', async () => {
-  const named = createEmptySnapshot();
-  named.project.name = 'Yard copy';
-  await parkLiveSnapshot(named);
-  await saveSnapshot(buildDemoData('2026-09-26'));
-  const working = await loadSnapshot();
-  expect(working?.settings.sample).toBe(true);
-  expect(working?.project.name).not.toBe('Yard copy');
-  const parked = await loadParkedSnapshot();
-  expect(parked?.project.name).toBe('Yard copy');
-  expect(parked?.materials).toHaveLength(0);
-  await clearParkedSnapshot();
-  expect(await loadParkedSnapshot()).toBeNull();
-  expect((await loadSnapshot())?.settings.sample).toBe(true);
+  expect(loaded?.project.name).toBe('Yard copy');
+  expect(loaded?.settings.sample).toBe(false);
+  expect(loaded?.materials).toHaveLength(0);
+  expect(loaded?.pipeJoints).toEqual([]);
+  expect(loaded?.fittings).toEqual([]);
 });
 
 test('stores and removes an attachment blob without changing its size', async () => {

@@ -14,6 +14,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      filename: 'sw-field-3.js',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'],
       manifest: {
         id: '/TJMaterials/',
@@ -35,6 +36,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cacheId: 'pmi-field-3',
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,txt}'],
       },

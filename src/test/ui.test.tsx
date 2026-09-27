@@ -90,14 +90,22 @@ test('a new project opens on the field home with no material', () => {
   expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
 });
 
-test('sample project is optional from More and is labeled as a sample', () => {
-  renderAt(emptySnapshot(), '/more');
+test('sample project is optional from More and returns to the field project', () => {
+  renderAt(emptySnapshot(), '/');
+  expect(screen.queryByText(/guest|demo materials|work on this device/i)).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'More' }));
   fireEvent.click(screen.getByRole('button', { name: 'Load sample project' }));
   expect(screen.getByText('Sample project.')).toBeInTheDocument();
-  expect(screen.queryByText(/SYNC COMPLETE/)).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument();
+  expect(screen.queryByText(/guest|demo materials|work on this device/i)).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('link', { name: 'Home' }));
   expect(screen.getByRole('heading', { name: 'Northline Spread A' })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: 'More' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Back to my project' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Home' }));
+  expect(screen.getByRole('heading', { name: 'Project' })).toBeInTheDocument();
+  expect(screen.queryByText('Northline Spread A')).not.toBeInTheDocument();
+  expect(screen.queryByText('PMI-PIPE-000001')).not.toBeInTheDocument();
+  expect(screen.getByTestId('sync-status')).toHaveTextContent('OFFLINE — SAVED LOCALLY');
 });
 
 test('camera and GPS stubs do not invent a capture when the device API is missing', async () => {
