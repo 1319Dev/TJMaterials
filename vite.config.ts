@@ -14,7 +14,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      filename: 'sw-field-4.js',
+      filename: 'sw-field-5.js',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'],
       manifest: {
         id: '/TJMaterials/',
@@ -36,11 +36,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        cacheId: 'pmi-field-4',
+        cacheId: 'pmi-field-5',
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
+        // Runtime NavigationRoute denylist defaults to []. Without this, a
+        // navigation to reset.html is answered with precached index.html.
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /\/reset\.html$/],
+        globIgnores: ['**/node_modules/**/*', '**/reset.html'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,txt,gz}'],
       },

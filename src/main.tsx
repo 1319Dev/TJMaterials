@@ -1,24 +1,30 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { CLIENT_BUILD, SERVICE_WORKER_FILENAME } from './build-id';
 import { AppProvider } from './state/AppState';
 import './index.css';
 
-const CLIENT_BUILD = 'pmi-field-4';
+function keepsCurrentWorker(registration: ServiceWorkerRegistration): boolean {
+  return [registration.active, registration.waiting, registration.installing].some((worker) =>
+    worker?.scriptURL.includes(SERVICE_WORKER_FILENAME),
+  );
+}
 
 async function dropStaleAppCache() {
   try {
-    if (localStorage.getItem('pmi-client-build') === CLIENT_BUILD) return;
-    localStorage.setItem('pmi-client-build', CLIENT_BUILD);
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((key) => caches.delete(key)));
+    if (localStorage.getItem('pmi-client-build') !== CLIENT_BUILD) {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+      localStorage.setItem('pmi-client-build', CLIENT_BUILD);
     }
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
         registrations
-          .filter((registration) => !registration.active?.scriptURL.includes('sw-field-4.js'))
+          .filter((registration) => !keepsCurrentWorker(registration))
           .map((registration) => registration.unregister()),
       );
     }

@@ -48,6 +48,10 @@ Daily receive, packing slips, MTRs, and the materials tracking sheet. Still loca
 - **Materials tracking sheet** reads an Excel or CSV workbook with Item, QTY, Size (Inches), Description, Wall/SDR, Steel Grade, Manufacturer, Model Number, Serial/Lot/Heat #, and ANSI/Pressure Rating. Construction Order No and Project Number are kept as the sheet header.
 - **Packing-slip OCR** reads a photo on the device, shows a preview with confidence, and writes tracker rows only after you apply them. Uncertain reads are **REVIEW REQUIRED**. OCR never writes MATCH.
 
+## Stuck on an old screen
+
+iOS can keep the previous service worker after the Home Screen icon is deleted. That worker answers every navigation, including `reset.html`, with the cached shell. After this site is published, open `https://1319dev.github.io/TJMaterials/reset.html` once. The page clears the worker, cached files, and the on-device project database, then opens the current app. The home screen shows `Build pmi-field-5`.
+
 ## Scripts
 
 ```bash
