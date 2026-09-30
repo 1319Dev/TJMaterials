@@ -17,15 +17,7 @@ import { emptySnapshot } from '../domain/empty';
 import { createReceipt, type ReceiveInput, type ReceiveResult } from '../domain/receive';
 import { addPackingSlip, attachImageRecord, type PackingSlipInput } from '../domain/coordinator';
 import { addDocument, removeDocument, saveMtrRequest, updateProject } from '../domain/records';
-import {
-  applyTrackerProposals,
-  importTrackerSheet,
-  updateTrackerCell as writeTrackerCell,
-  updateTrackerHeader as writeTrackerHeader,
-  type OcrProposal,
-  type ParsedTracker,
-  type TrackerEditField,
-} from '../domain/tracker';
+import { applyTrackerProposals, importTrackerSheet, type OcrProposal, type ParsedTracker } from '../domain/tracker';
 import {
   saveFitting as writeFitting,
   saveFlange as writeFlange,
@@ -36,7 +28,7 @@ import {
 } from '../domain/specialty';
 import { countPending, describeSync } from '../domain/sync';
 import { savePipeJoint as writePipeJoint, type PipeJointInput } from '../domain/tally';
-import type { AppSnapshot, DocumentRecord, MtrRequestLine, PermissionNote, PhotoRecord, ProjectRecord, ThemeMode, TrackerSheet } from '../domain/types';
+import type { AppSnapshot, DocumentRecord, MtrRequestLine, PermissionNote, PhotoRecord, ProjectRecord, ThemeMode } from '../domain/types';
 
 const NAME_FIRST = 'Name the project before adding material. Nothing was invented.';
 
@@ -74,8 +66,6 @@ interface AppContextValue {
     },
   ) => Promise<string | null>;
   saveTracker: (parsed: ParsedTracker, fileName: string) => { errors: string[]; rowCount: number };
-  updateTrackerCell: (rowId: string, field: TrackerEditField, value: string) => void;
-  updateTrackerHeader: (patch: Partial<Pick<TrackerSheet, 'projectName' | 'projectNumber' | 'sheetDate' | 'inspector' | 'constructionOrderNo'>>) => void;
   applyOcrRows: (
     proposals: OcrProposal[],
     options: {
@@ -333,14 +323,6 @@ export function AppProvider({
         const result = importTrackerSheet(snapshot, parsed, { fileName }, { now: new Date(), newId: () => crypto.randomUUID() });
         if (result.errors.length === 0) commit(result.snapshot);
         return { errors: result.errors, rowCount: result.rowCount };
-      },
-      updateTrackerCell(rowId, field, value) {
-        if (!snapshot) return;
-        commit(writeTrackerCell(snapshot, rowId, field, value));
-      },
-      updateTrackerHeader(patch) {
-        if (!snapshot) return;
-        commit(writeTrackerHeader(snapshot, patch));
       },
       applyOcrRows(proposals, options) {
         if (!snapshot) return { errors: ['Records are not loaded.'], applied: 0 };

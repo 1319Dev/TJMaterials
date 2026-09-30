@@ -52,7 +52,7 @@ export function MorePage() {
           MTRs
         </Link>
         <Link to="/tracker" className="flex min-h-14 items-center rounded-2xl border-2 border-pmi-border bg-pmi-card px-4 text-lg font-bold">
-          Master List
+          Materials tracker
         </Link>
       </section>
 

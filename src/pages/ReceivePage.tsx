@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { downloadMasterList } from '../lib/master-list-file';
+import { useSearchParams } from 'react-router-dom';
 import { localIsoDate } from '../domain/dates';
 import { readBlob } from '../lib/blob';
 import { collectMaterialCodes, nextMaterialCode } from '../domain/ids';
 import { CATEGORY_LABELS } from '../domain/labels';
 import { requestCameraStub, requestGpsStub } from '../domain/permissions';
 import { emptyReceiveLine, receiveDefaults, type PhotoStubInput, type ReceiveInput, type ReceiveLineInput } from '../domain/receive';
-import type { MaterialCategory, TrackerSheet } from '../domain/types';
+import type { MaterialCategory } from '../domain/types';
 import { useApp } from '../state/AppState';
 import { SpecialtyNav } from '../components/SpecialtyNav';
 import { CaptureActions, PhotoSlot, SheetHeader, VerificationBadge, codeControlClass, codeFieldProps, controlClass, Field } from '../components/ui';
@@ -19,7 +18,7 @@ export function ReceivePage() {
   const today = localIsoDate();
   const [form, setForm] = useState<ReceiveInput | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const [saved, setSaved] = useState<{ codes: string[]; items: string[]; tracker: TrackerSheet } | null>(null);
+  const [savedCodes, setSavedCodes] = useState<string[] | null>(null);
   const [permissionNote, setPermissionNote] = useState('');
 
   const active = form ?? (snapshot ? receiveDefaults(snapshot, today) : null);
@@ -40,7 +39,7 @@ export function ReceivePage() {
 
   function update(patch: Partial<ReceiveInput>) {
     setForm({ ...formValue, ...patch });
-    setSaved(null);
+    setSavedCodes(null);
   }
 
   function updateLine(index: number, patch: Partial<ReceiveLineInput>) {
@@ -115,11 +114,11 @@ export function ReceivePage() {
     if (!result) return;
     if (result.errors.length > 0) {
       setErrors(result.errors);
-      setSaved(null);
+      setSavedCodes(null);
       return;
     }
     setErrors([]);
-    setSaved({ codes: result.materialCodes ?? [], items: result.trackerItems ?? [], tracker: result.snapshot.tracker });
+    setSavedCodes(result.materialCodes ?? []);
     setForm(receiveDefaults(loaded, today));
   }
 
@@ -129,11 +128,9 @@ export function ReceivePage() {
         <h1 className="text-2xl font-black">Receive material</h1>
         {fromDaily ? (
           <p className="mt-2 border-l-8 border-l-pmi-hold bg-pmi-ink px-3 py-2 text-base font-black text-pmi-sheet-text">
-            Daily materials receive. This receipt stays REVIEW REQUIRED. Each line is appended to the Master List.
+            Daily materials receive. This receipt stays REVIEW REQUIRED.
           </p>
-        ) : (
-          <p className="mt-2 text-sm font-bold">Saving appends each line to the Master List as the next Item.</p>
-        )}
+        ) : null}
         <p className="mt-1 text-sm text-pmi-muted">
           Saved on this device as REVIEW REQUIRED. Heat numbers, photos, and coordinates are stored only when you enter them.
         </p>
@@ -148,23 +145,16 @@ export function ReceivePage() {
         </ul>
       ) : null}
 
-      {saved ? (
+      {savedCodes ? (
         <div role="status" className="space-y-2 rounded-2xl border-2 border-pmi-border bg-pmi-card p-3">
           <p className="font-bold">Saved on this device</p>
           <ul>
-            {saved.codes.map((code) => (
+            {savedCodes.map((code) => (
               <li key={code} className="font-bold">
                 {code}
               </li>
             ))}
           </ul>
-          <p className="font-bold">Master List item {saved.items.join(', ')}. Material was not accepted.</p>
-          <Link to="/tracker" className="flex min-h-12 items-center font-black underline">
-            Open Master List
-          </Link>
-          <button type="button" className="min-h-12 w-full border-2 border-pmi-border font-black" onClick={() => downloadMasterList(saved.tracker)}>
-            Download Master List
-          </button>
           <VerificationBadge status="review_required" />
         </div>
       ) : null}
@@ -283,9 +273,6 @@ export function ReceivePage() {
                 ))}
               </select>
             </Field>
-            <Field label="Material Type" hint="Master List column. Blank uses the category.">
-              <input className={controlClass} value={line.materialType} onChange={(event) => updateLine(index, { materialType: event.target.value })} />
-            </Field>
             <Field label="Material Description">
               <input className={controlClass} value={line.description} onChange={(event) => updateLine(index, { description: event.target.value })} />
             </Field>
@@ -306,12 +293,6 @@ export function ReceivePage() {
             </Field>
             <Field label="Qty">
               <input className={controlClass} inputMode="decimal" value={line.quantity} onChange={(event) => updateLine(index, { quantity: event.target.value })} />
-            </Field>
-            <Field label="UOM">
-              <select className={controlClass} value={line.uom} onChange={(event) => updateLine(index, { uom: event.target.value })}>
-                <option value="Each">Each</option>
-                <option value="Ft">Ft</option>
-              </select>
             </Field>
             <Field label="Model Number">
               <input className={controlClass} value={line.modelNumber} onChange={(event) => updateLine(index, { modelNumber: event.target.value })} />

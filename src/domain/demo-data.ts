@@ -557,9 +557,6 @@ export function buildDemoData(today: string): AppSnapshot {
     tracker: {
       constructionOrderNo: '',
       projectNumber: '',
-      projectName: '',
-      sheetDate: '',
-      inspector: '',
       sourceFileName: '',
       importedAt: null,
       rows: [],

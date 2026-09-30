@@ -30,23 +30,6 @@ test('daily receive stays on the empty project and opens the receive form', () =
   expect(screen.getByRole('link', { name: "Log today's delivery" })).toHaveAttribute('href', expect.stringContaining('from=daily'));
 });
 
-test('daily receive appends a Master List row and shows it on the tracker', async () => {
-  renderAt(named(), '/receive?from=daily');
-  fireEvent.change(screen.getByLabelText('Vendor'), { target: { value: 'Acme Pipe' } });
-  fireEvent.change(screen.getByLabelText('BOL #'), { target: { value: 'BOL-9' } });
-  fireEvent.change(screen.getByLabelText('Material Description'), { target: { value: '8 inch steel pipe' } });
-  fireEvent.change(screen.getByLabelText('Qty'), { target: { value: '6' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Save delivery' }));
-  expect(await screen.findByText(/Master List item 1/)).toBeInTheDocument();
-  expect(screen.getByText('REVIEW REQUIRED')).toBeInTheDocument();
-  expect(screen.queryByText('MATCH')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole('link', { name: 'Open Master List' }));
-  expect(await screen.findByDisplayValue('8 inch steel pipe')).toBeInTheDocument();
-  expect(screen.getByLabelText('QTY-Received item 1')).toHaveValue('6');
-  expect(screen.getByRole('button', { name: 'Export Master List' })).toBeInTheDocument();
-  expect(screen.queryByText('MATCH')).not.toBeInTheDocument();
-});
-
 test('the daily receive form keeps the receipt in review', () => {
   renderAt(named(), '/receive?from=daily');
   expect(screen.getByText(/Daily materials receive/)).toBeInTheDocument();
