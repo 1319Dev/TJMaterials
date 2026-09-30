@@ -1,7 +1,7 @@
 import { buildDemoData } from './demo-data';
 import { localIsoDate } from './dates';
-import { emptyTrackerSheet, normalizeSettings } from './empty';
-import type { AppSnapshot, PackingSlipRecord, TrackerRow, TrackerSheet } from './types';
+import { normalizeSettings } from './empty';
+import type { AppSnapshot, PackingSlipRecord, TrackerSheet } from './types';
 
 function hasPhase2(snapshot: AppSnapshot): boolean {
   const raw = snapshot as Partial<AppSnapshot>;
@@ -18,42 +18,14 @@ function mergeById<T extends { id: string }>(current: readonly T[], extras: read
   return [...current, ...extras.filter((item) => !seen.has(item.id))];
 }
 
-function normalizeTrackerRow(row: TrackerRow): TrackerRow {
+export function emptyTrackerSheet(): TrackerSheet {
   return {
-    ...row,
-    qtyOrdered: row.qtyOrdered ?? row.qty ?? '',
-    qtyReceived: row.qtyReceived ?? '',
-    qtyUsed: row.qtyUsed ?? '',
-    materialType: row.materialType ?? '',
-    uom: row.uom ?? '',
-    location: row.location ?? '',
-    mtrYn: row.mtrYn ?? '',
-    matchesIfc: row.matchesIfc ?? '',
-    damagedMaterials: row.damagedMaterials ?? '',
-    notes: row.notes ?? '',
+    constructionOrderNo: '',
+    projectNumber: '',
+    sourceFileName: '',
+    importedAt: null,
+    rows: [],
   };
-}
-
-function normalizeTracker(tracker: TrackerSheet): TrackerSheet {
-  return {
-    constructionOrderNo: tracker.constructionOrderNo ?? '',
-    projectNumber: tracker.projectNumber ?? '',
-    projectName: tracker.projectName ?? '',
-    sheetDate: tracker.sheetDate ?? '',
-    inspector: tracker.inspector ?? '',
-    sourceFileName: tracker.sourceFileName ?? '',
-    importedAt: tracker.importedAt ?? null,
-    rows: (tracker.rows ?? []).map((row) => normalizeTrackerRow(row)),
-  };
-}
-
-function trackerIsCurrent(tracker: TrackerSheet): boolean {
-  return (
-    typeof tracker.projectName === 'string' &&
-    typeof tracker.sheetDate === 'string' &&
-    typeof tracker.inspector === 'string' &&
-    tracker.rows.every((row) => typeof row.qtyOrdered === 'string' && typeof row.materialType === 'string' && typeof row.notes === 'string')
-  );
 }
 
 export function ensureCoordinator(snapshot: AppSnapshot): AppSnapshot {
@@ -61,8 +33,7 @@ export function ensureCoordinator(snapshot: AppSnapshot): AppSnapshot {
     tracker?: TrackerSheet;
     packingSlips?: PackingSlipRecord[];
   };
-  const base = raw.tracker?.rows ? raw.tracker : emptyTrackerSheet();
-  const tracker = trackerIsCurrent(base) ? base : normalizeTracker(base);
+  const tracker = raw.tracker?.rows ? raw.tracker : emptyTrackerSheet();
   const packingSlips = Array.isArray(raw.packingSlips) ? raw.packingSlips : [];
   if (tracker === raw.tracker && packingSlips === raw.packingSlips) return snapshot;
   return { ...snapshot, tracker, packingSlips };

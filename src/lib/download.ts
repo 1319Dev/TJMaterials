@@ -1,14 +1,5 @@
-export function downloadBytes(filename: string, mime: string, bytes: Uint8Array): void {
-  const copy = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(copy).set(bytes);
-  downloadBlob(filename, new Blob([copy], { type: mime }));
-}
-
 export function downloadTextFile(filename: string, mime: string, contents: string): void {
-  downloadBlob(filename, new Blob([contents], { type: mime }));
-}
-
-function downloadBlob(filename: string, blob: Blob): void {
+  const blob = new Blob([contents], { type: mime });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;

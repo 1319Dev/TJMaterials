@@ -1,142 +1,46 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CoordinatorNav } from '../components/CoordinatorNav';
 import { Field, VerificationBadge, controlClass } from '../components/ui';
-import {
-  MASTER_LIST_LAYOUT,
-  formatMasterFormula,
-  orderedQty,
-  receivedQty,
-  type MasterField,
-} from '../domain/master-list';
-import { parseTrackerMatrix, type ParsedTracker, type ParsedTrackerRow, type TrackerEditField } from '../domain/tracker';
-import type { TrackerRow, TrackerSheet } from '../domain/types';
+import { parseTrackerMatrix, type ParsedTracker, type ParsedTrackerRow } from '../domain/tracker';
+import type { TrackerRow } from '../domain/types';
 import { readBlob } from '../lib/blob';
-import { downloadMasterList } from '../lib/master-list-file';
 import { useApp } from '../state/AppState';
 
-const PREVIEW: Array<[string, keyof ParsedTrackerRow]> = [
+const COLUMNS: Array<[string, keyof ParsedTrackerRow]> = [
   ['Item', 'item'],
-  ['QTY-Ordered', 'qtyOrdered'],
-  ['QTY-Received', 'qtyReceived'],
-  ['Material Type', 'materialType'],
+  ['QTY', 'qty'],
   ['Size (Inches)', 'sizeInches'],
-  ['Material Description', 'description'],
-  ['Wall / SDR', 'wallSdr'],
-  ['Grade', 'steelGrade'],
+  ['Description', 'description'],
+  ['Wall/SDR', 'wallSdr'],
+  ['Steel Grade', 'steelGrade'],
   ['Manufacturer', 'manufacturer'],
   ['Model Number', 'modelNumber'],
-  ['Serial / Lot / Heat #', 'serialLotHeat'],
-  ['ANSI / Pressure Rating', 'ansiPressureRating'],
+  ['Serial/Lot/Heat #', 'serialLotHeat'],
+  ['ANSI/Pressure Rating', 'ansiPressureRating'],
 ];
 
-function formulaText(row: TrackerRow, field: MasterField): string {
-  if (field === 'difference') return formatMasterFormula(receivedQty(row), orderedQty(row));
-  if (field === 'remaining') return formatMasterFormula(receivedQty(row), row.qtyUsed);
-  return '';
-}
-
-function cellValue(row: TrackerRow, field: MasterField): string {
-  if (field === 'qtyOrdered') return orderedQty(row);
-  if (field === 'qtyReceived') return receivedQty(row);
-  if (field === 'difference' || field === 'remaining') return formulaText(row, field);
-  return row[field];
-}
-
-function CellInput({
-  value,
-  label,
-  wide,
-  onCommit,
-}: {
-  value: string;
-  label: string;
-  wide?: boolean;
-  onCommit: (value: string) => void;
-}) {
-  const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
+function RowCard({ row, badge }: { row: ParsedTrackerRow; badge?: TrackerRow }) {
   return (
-    <input
-      aria-label={label}
-      className={wide ? 'pmi-master-wide' : undefined}
-      value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => {
-        if (draft !== value) onCommit(draft);
-      }}
-    />
-  );
-}
-
-function MasterTable({ rows }: { rows: TrackerRow[] }) {
-  const { updateTrackerCell } = useApp();
-  return (
-    <div className="pmi-master" data-testid="master-list-table">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Status</th>
-            {MASTER_LIST_LAYOUT.map((column) => (
-              <th key={column.header} scope="col">
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <td>
-                <VerificationBadge status={row.verificationStatus} />
-                {row.uncertain ? <span className="pmi-chip pmi-chip-hold">REVIEW REQUIRED</span> : null}
-              </td>
-              {MASTER_LIST_LAYOUT.map((column) => {
-                const label = `${column.header} item ${row.item}`;
-                if (column.field === 'difference' || column.field === 'remaining') {
-                  return <td key={column.header}>{formulaText(row, column.field)}</td>;
-                }
-                return (
-                  <td key={column.header}>
-                    <CellInput
-                      value={cellValue(row, column.field)}
-                      label={label}
-                      wide={column.field === 'description' || column.field === 'notes'}
-                      onCommit={(value) => updateTrackerCell(row.id, column.field as TrackerEditField, value)}
-                    />
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function HeaderFields({ tracker }: { tracker: TrackerSheet }) {
-  const { updateTrackerHeader } = useApp();
-  const fields: Array<[keyof Pick<TrackerSheet, 'projectName' | 'projectNumber' | 'sheetDate' | 'inspector'>, string]> = [
-    ['projectName', 'Project Name'],
-    ['projectNumber', 'Project #'],
-    ['sheetDate', 'Date'],
-    ['inspector', 'Inspector'],
-  ];
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {fields.map(([key, label]) => (
-        <Field key={key} label={label}>
-          <input
-            className={controlClass}
-            defaultValue={tracker[key]}
-            key={`${key}-${tracker[key]}`}
-            onBlur={(event) => {
-              if (event.target.value !== tracker[key]) updateTrackerHeader({ [key]: event.target.value });
-            }}
-          />
-        </Field>
-      ))}
-    </div>
+    <article className="border-2 border-pmi-border bg-pmi-card p-3">
+      <p className="text-lg font-black">{row.description || 'No description'}</p>
+      {badge ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          <VerificationBadge status={badge.verificationStatus} />
+          {badge.uncertain ? <span className="pmi-chip pmi-chip-hold">REVIEW REQUIRED</span> : null}
+          <span className="pmi-chip">{badge.source === 'ocr' ? 'OCR' : badge.source === 'import' ? 'SHEET' : 'MANUAL'}</span>
+          {badge.confidence !== null ? <span className="pmi-chip">{Math.round(badge.confidence * 100)}%</span> : null}
+        </div>
+      ) : null}
+      <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+        {COLUMNS.map(([label, key]) => (
+          <div key={label}>
+            <dt className="font-black uppercase tracking-wide text-pmi-muted">{label}</dt>
+            <dd className="font-bold">{row[key] || '—'}</dd>
+          </div>
+        ))}
+      </dl>
+      {badge?.reviewNote ? <p className="mt-2 text-sm">{badge.reviewNote}</p> : null}
+    </article>
   );
 }
 
@@ -165,62 +69,14 @@ export function TrackerPage() {
   return (
     <div className="space-y-4" data-testid="tracker-sheet">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-pmi-muted">Master List</p>
-        <h1 className="text-3xl font-black leading-none">Material Handling Tracking</h1>
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-pmi-muted">Coordinator</p>
+        <h1 className="text-3xl font-black leading-none">Materials tracking sheet</h1>
         <p className="mt-2 text-sm text-pmi-muted">
-          Live tracker on this device. Receive material to append the next Item. Difference and Remaining follow the sheet formulas. Nothing here accepts material.
+          Upload the bill of materials workbook. It stays on this device and does not accept material.
         </p>
       </div>
       <CoordinatorNav />
-      <HeaderFields tracker={tracker} />
-      <button
-        type="button"
-        className="min-h-14 w-full bg-pmi-accent text-lg font-black text-pmi-accent-text"
-        onClick={() => downloadMasterList(tracker)}
-      >
-        Export Master List
-      </button>
-      <section aria-labelledby="tracker-saved">
-        <h2 id="tracker-saved" className="pmi-sheet-title">
-          Master List
-        </h2>
-        <p className="mt-2 font-bold">
-          {tracker.rows.length} item{tracker.rows.length === 1 ? '' : 's'}
-          {tracker.projectName ? ` · ${tracker.projectName}` : ''}
-          {tracker.projectNumber ? ` · Project # ${tracker.projectNumber}` : ''}
-        </p>
-        {tracker.constructionOrderNo ? <p className="text-sm font-bold">Construction Order No {tracker.constructionOrderNo}</p> : null}
-        {tracker.sourceFileName ? <p className="text-sm">{tracker.sourceFileName}</p> : null}
-        {(tracker.projectName || tracker.projectNumber || tracker.inspector || tracker.constructionOrderNo) && (
-          <button
-            type="button"
-            className="mt-2 min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-black"
-            onClick={() => {
-              saveProject({
-                ...snapshot.project,
-                name: tracker.projectName || snapshot.project.name,
-                constructionOrderNo: tracker.constructionOrderNo || snapshot.project.constructionOrderNo,
-                projectNumber: tracker.projectNumber || snapshot.project.projectNumber,
-                inspectorName: tracker.inspector || snapshot.project.inspectorName,
-              });
-              setMessage('Sheet header copied onto the project. Material was not accepted.');
-            }}
-          >
-            Copy sheet header onto project
-          </button>
-        )}
-        {tracker.rows.length === 0 ? (
-          <p className="mt-2 border-2 border-pmi-border bg-pmi-card p-3 font-bold">No Master List rows on this device.</p>
-        ) : (
-          <div className="mt-2">
-            <MasterTable rows={tracker.rows} />
-          </div>
-        )}
-      </section>
-      <Field
-        label="Upload tracking sheet"
-        hint="Excel or CSV. A workbook with a Master List sheet is read from that sheet. Blank template rows are skipped. Saving replaces the rows on this device."
-      >
+      <Field label="Upload tracking sheet" hint="Excel or CSV. Columns: Item, QTY, Size (Inches), Description, Wall/SDR, Steel Grade, Manufacturer, Model Number, Serial/Lot/Heat #, ANSI/Pressure Rating.">
         <input
           className={controlClass}
           type="file"
@@ -239,26 +95,16 @@ export function TrackerPage() {
             Sheet preview
           </h2>
           <p className="font-bold">
-            Project Name {pending.projectName || '—'} · Project # {pending.projectNumber || '—'} · Date {pending.sheetDate || '—'} · Inspector{' '}
-            {pending.inspector || '—'}
+            Construction Order No {pending.constructionOrderNo || '—'} · Project Number {pending.projectNumber || '—'}
           </p>
-          {pending.constructionOrderNo ? <p className="font-bold">Construction Order No {pending.constructionOrderNo}</p> : null}
           <p className="text-sm">{fileName}</p>
-          {tracker.rows.length > 0 ? <p className="pmi-flag">Saving replaces the tracker rows on this device.</p> : null}
+          {tracker.rows.length > 0 ? (
+            <p className="pmi-flag">Saving replaces the tracker rows on this device.</p>
+          ) : null}
           <ul className="space-y-2">
             {pending.rows.map((row, index) => (
               <li key={`${row.item}-${index}`}>
-                <article className="border-2 border-pmi-border bg-pmi-card p-3">
-                  <p className="text-lg font-black">{row.description || 'No description'}</p>
-                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    {PREVIEW.map(([label, key]) => (
-                      <div key={label}>
-                        <dt className="font-black uppercase tracking-wide text-pmi-muted">{label}</dt>
-                        <dd className="font-bold">{row[key] || '—'}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </article>
+                <RowCard row={row} />
               </li>
             ))}
           </ul>
@@ -279,6 +125,42 @@ export function TrackerPage() {
         </section>
       ) : null}
       {message ? <p role="status">{message}</p> : null}
+      <section aria-labelledby="tracker-saved">
+        <h2 id="tracker-saved" className="pmi-sheet-title">
+          Job tracker
+        </h2>
+        <p className="mt-2 font-bold">
+          Construction Order No {tracker.constructionOrderNo || '—'} · Project Number {tracker.projectNumber || '—'}
+        </p>
+        {tracker.sourceFileName ? <p className="text-sm">{tracker.sourceFileName}</p> : null}
+        {(tracker.constructionOrderNo || tracker.projectNumber) && (
+          <button
+            type="button"
+            className="mt-2 min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-black"
+            onClick={() => {
+              saveProject({
+                ...snapshot.project,
+                constructionOrderNo: tracker.constructionOrderNo || snapshot.project.constructionOrderNo,
+                projectNumber: tracker.projectNumber || snapshot.project.projectNumber,
+              });
+              setMessage('Sheet header copied onto the project. Material was not accepted.');
+            }}
+          >
+            Copy sheet header onto project
+          </button>
+        )}
+        {tracker.rows.length === 0 ? (
+          <p className="mt-2 border-2 border-pmi-border bg-pmi-card p-3 font-bold">No tracker rows on this device.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {tracker.rows.map((row) => (
+              <li key={row.id}>
+                <RowCard row={row} badge={row} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
