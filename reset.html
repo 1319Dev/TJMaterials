@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Clearing old app data…</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #c5ccd4;
+        color: #1c2430;
+        font: 20px/1.4 system-ui, sans-serif;
+      }
+      main {
+        max-width: 28rem;
+        padding: max(1.5rem, env(safe-area-inset-top)) 1.25rem 2rem;
+      }
+      a {
+        color: inherit;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>Clearing old app data…</p>
+      <p><a href="./?fresh=5">Continue</a></p>
+    </main>
+    <script>
+      (async function clearStuckApp() {
+        try {
+          if ('serviceWorker' in navigator) {
+            var registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(
+              registrations.map(function (registration) {
+                return registration.unregister();
+              }),
+            );
+          }
+          if ('caches' in window) {
+            var keys = await caches.keys();
+            await Promise.all(
+              keys.map(function (key) {
+                return caches.delete(key);
+              }),
+            );
+          }
+          await new Promise(function (resolve) {
+            var settled = false;
+            function done() {
+              if (settled) return;
+              settled = true;
+              resolve();
+            }
+            try {
+              var request = indexedDB.deleteDatabase('pipeline-material-inspector');
+              request.onsuccess = done;
+              request.onerror = done;
+              request.onblocked = done;
+            } catch (error) {
+              done();
+            }
+            setTimeout(done, 1500);
+          });
+          var drop = [];
+          for (var index = 0; index < localStorage.length; index += 1) {
+            var key = localStorage.key(index);
+            if (!key) continue;
+            if (
+              key === 'pmi-client-build' ||
+              key.indexOf('pmi-') === 0 ||
+              key.indexOf('pipeline-material') !== -1 ||
+              key.indexOf('pmi-field') !== -1
+            ) {
+              drop.push(key);
+            }
+          }
+          drop.forEach(function (key) {
+            localStorage.removeItem(key);
+          });
+        } catch (error) {
+          // Still leave the stuck shell. The link below works with JavaScript off.
+        }
+        location.replace('./?fresh=5');
+      })();
+    </script>
+  </body>
+</html>
