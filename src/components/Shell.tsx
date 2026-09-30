@@ -10,6 +10,7 @@ export function Shell() {
   const location = useLocation();
   const onInstallPage = location.pathname.endsWith('/more');
   const onHome = location.pathname === '/';
+  const onTracker = location.pathname.endsWith('/tracker');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -37,7 +38,7 @@ export function Shell() {
   }, []);
 
   return (
-    <div className="pmi-shell mx-auto min-h-[100dvh] max-w-lg px-3 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+    <div className={`pmi-shell mx-auto min-h-[100dvh] px-3 pb-[calc(7rem+env(safe-area-inset-bottom))] ${onTracker ? 'max-w-6xl' : 'max-w-lg'}`}>
       <a href="#main" className="sr-only focus:not-sr-only">
         Skip to content
       </a>

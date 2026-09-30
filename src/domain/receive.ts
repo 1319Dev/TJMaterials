@@ -1,6 +1,8 @@
 import { collectMaterialCodes, nextMaterialCode } from './ids';
+import { CATEGORY_LABELS } from './labels';
 import { enqueue } from './sync';
 import { pipeJointShell } from './tally';
+import { appendReceiptToMasterList } from './tracker';
 import type {
   AppSnapshot,
   AuditLogRecord,
@@ -29,6 +31,8 @@ export interface ReceiveLineInput {
   jointNumber: string;
   ansiPressureRating: string;
   specification: string;
+  materialType: string;
+  uom: string;
 }
 
 export interface PhotoStubInput {
@@ -79,6 +83,7 @@ export interface ReceiveResult {
   errors: string[];
   deliveryId?: string;
   materialCodes?: string[];
+  trackerItems?: string[];
 }
 
 function blankLine(): ReceiveLineInput {
@@ -96,6 +101,8 @@ function blankLine(): ReceiveLineInput {
     jointNumber: '',
     ansiPressureRating: '',
     specification: '',
+    materialType: '',
+    uom: 'Each',
   };
 }
 
@@ -305,13 +312,38 @@ export function createReceipt(
     notes: 'File metadata stored on this device.',
   }));
 
+  const master = appendReceiptToMasterList(
+    snapshot,
+    {
+      deliveryId: delivery.id,
+      receivedOn,
+      inspectorName: delivery.inspectorName,
+      notes: delivery.notes,
+      lines: materials.map((material, index) => ({
+        materialType: clean(lines[index]?.materialType ?? '') || CATEGORY_LABELS[material.category],
+        description: material.description,
+        sizeInches: material.diameter,
+        wallSdr: material.wallThickness,
+        steelGrade: material.grade,
+        manufacturer: material.manufacturer,
+        modelNumber: material.modelNumber,
+        serialLotHeat: [material.heatNumber, material.serialOrLot].map((value) => value.trim()).filter(Boolean).join(' / '),
+        ansiPressureRating: material.ansiPressureRating,
+        uom: clean(lines[index]?.uom ?? '') || 'Each',
+        quantity: String(material.quantity),
+        notes: delivery.notes,
+      })),
+    },
+    ctx,
+  );
+
   const audit: AuditLogRecord = {
     id: ctx.newId(),
     projectId: snapshot.project.id,
     action: 'receive',
     entityType: 'deliveries',
     entityId: delivery.id,
-    summary: `Received ${materialCodes.join(', ')}`,
+    summary: `Received ${materialCodes.join(', ')}. Master List item ${master.items.join(', ')}. Material was not accepted.`,
     verificationStatus: 'review_required',
     createdAt: nowIso,
   };
@@ -322,6 +354,7 @@ export function createReceipt(
     ...materials.map((material) => ({ entityType: 'materials', entityId: material.id })),
     ...joints.map((joint) => ({ entityType: 'pipe_joints', entityId: joint.id })),
     ...documents.map((document) => ({ entityType: 'documents', entityId: document.id })),
+    { entityType: 'tracker', entityId: snapshot.project.id },
   ];
   for (const item of queued) {
     queue = enqueue(queue, {
@@ -342,11 +375,13 @@ export function createReceipt(
       pipeJoints: joints.length > 0 ? [...snapshot.pipeJoints, ...joints] : snapshot.pipeJoints,
       photos: [...snapshot.photos, ...photos],
       documents: [...snapshot.documents, ...documents],
+      tracker: master.tracker,
       auditLogs: [...snapshot.auditLogs, audit],
       queue,
     },
     errors: [],
     deliveryId: delivery.id,
     materialCodes,
+    trackerItems: master.items,
   };
 }

@@ -1,4 +1,4 @@
-import { normLabel, type OcrProposal, type ParsedTrackerRow } from './tracker';
+import { blankParsedTrackerRow, normLabel, type OcrProposal, type ParsedTrackerRow } from './tracker';
 
 export interface OcrTextLine {
   text: string;
@@ -17,7 +17,7 @@ const CO_RE = /construction order\s+(?:no|number)\.?\s*[:#-]?\s*([A-Za-z0-9][A-Z
 const PN_RE = /project\s+(?:number|no)\.?\s*[:#-]?\s*([A-Za-z0-9][A-Za-z0-9./-]*)/i;
 const PS_RE = /packing\s+slip(?:\s*(?:#|number|no\.?))?\s*[:#-]?\s*([A-Za-z0-9][A-Za-z0-9./-]*)/i;
 
-const FIELD_ALIASES: Record<keyof ParsedTrackerRow, string[]> = {
+const FIELD_ALIASES: Partial<Record<keyof ParsedTrackerRow, string[]>> = {
   item: ['item', 'item no', 'item number', 'line'],
   qty: ['qty', 'quantity', 'qnty'],
   sizeInches: ['size inches', 'size', 'diameter'],
@@ -48,7 +48,8 @@ function matchField(label: string): keyof ParsedTrackerRow | null {
   const norm = normLabel(label);
   let best: { field: keyof ParsedTrackerRow; score: number } | null = null;
   for (const field of Object.keys(FIELD_ALIASES) as (keyof ParsedTrackerRow)[]) {
-    for (const alias of FIELD_ALIASES[field]) {
+    const aliases = FIELD_ALIASES[field] ?? [];
+    for (const alias of aliases) {
       if (norm === alias && (!best || alias.length > best.score)) best = { field, score: alias.length };
     }
   }
@@ -71,18 +72,7 @@ function looksMarked(value: string): boolean {
 }
 
 function blankRow(): ParsedTrackerRow {
-  return {
-    item: '',
-    qty: '',
-    sizeInches: '',
-    description: '',
-    wallSdr: '',
-    steelGrade: '',
-    manufacturer: '',
-    modelNumber: '',
-    serialLotHeat: '',
-    ansiPressureRating: '',
-  };
+  return blankParsedTrackerRow();
 }
 
 function fromLoose(line: string): ParsedTrackerRow | null {

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { downloadMasterList } from '../lib/master-list-file';
 import { localIsoDate, formatWhen } from '../domain/dates';
 import {
   damagedMaterials,
@@ -83,6 +84,42 @@ export function HomePage() {
         )}
       </section>
 
+      <section className="space-y-2 border-2 border-pmi-border bg-pmi-card p-3" aria-labelledby="master-list-home">
+        <h2 id="master-list-home" className="pmi-sheet-title">
+          Material Handling Tracking
+        </h2>
+        <p className="font-bold">
+          Master List · {snapshot.tracker.rows.length} item{snapshot.tracker.rows.length === 1 ? '' : 's'} on this device
+        </p>
+        <p className="text-sm text-pmi-muted">Each receive adds the next Item row. The list stays REVIEW REQUIRED until you record a status yourself.</p>
+        {snapshot.tracker.rows.length === 0 ? (
+          <p className="font-bold">No Master List rows yet.</p>
+        ) : (
+          <ul className="space-y-1">
+            {snapshot.tracker.rows.slice(-3).map((row) => (
+              <li key={row.id} className="border-2 border-pmi-border px-2 py-1">
+                <p className="font-black">
+                  Item {row.item} · {row.description || 'No description'}
+                </p>
+                <p className="text-sm font-bold">
+                  Ordered {row.qtyOrdered || '—'} · Received {row.qtyReceived || '—'}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Link to="/tracker" className="flex min-h-14 items-center justify-center bg-pmi-ink text-lg font-black text-pmi-sheet-text">
+          Open Master List
+        </Link>
+        <button
+          type="button"
+          className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-black"
+          onClick={() => downloadMasterList(snapshot.tracker)}
+        >
+          Export Master List
+        </button>
+      </section>
+
       <Link
         to="/daily"
         className="flex min-h-16 items-center justify-center border-l-8 border-l-pmi-hold bg-pmi-ink px-3 text-center text-lg font-black tracking-wide text-pmi-sheet-text"
@@ -97,7 +134,7 @@ export function HomePage() {
           MTRs
         </Link>
         <Link to="/tracker" className="flex min-h-14 items-center justify-center border-2 border-pmi-border bg-pmi-card px-2 text-center text-sm font-black">
-          Tracker
+          Master List
         </Link>
       </nav>
 

@@ -4,7 +4,7 @@ const links = [
   ['/daily', 'Daily receive'],
   ['/packing-slips', 'Packing slips'],
   ['/mtrs', 'MTRs'],
-  ['/tracker', 'Tracker'],
+  ['/tracker', 'Master List'],
 ] as const;
 
 export function CoordinatorNav() {

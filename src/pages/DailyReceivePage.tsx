@@ -3,6 +3,7 @@ import { CoordinatorNav } from '../components/CoordinatorNav';
 import { VerificationBadge } from '../components/ui';
 import { localIsoDate } from '../domain/dates';
 import { deliveriesOnDate } from '../domain/dashboard';
+import { downloadMasterList } from '../lib/master-list-file';
 import { useApp } from '../state/AppState';
 
 function formatDay(iso: string): string {
@@ -29,7 +30,7 @@ export function DailyReceivePage() {
         <h1 className="text-3xl font-black leading-none">Daily materials receive</h1>
         <p className="mt-2 text-lg font-bold">{formatDay(today)}</p>
         <p className="mt-1 text-sm text-pmi-muted">
-          Today’s deliveries on this device. Logging a delivery uses the receive form and stays REVIEW REQUIRED.
+          Today’s deliveries on this device. Logging a delivery appends each material and qty to the Master List and stays REVIEW REQUIRED.
         </p>
       </div>
       <CoordinatorNav />
@@ -39,6 +40,9 @@ export function DailyReceivePage() {
       >
         Log today&apos;s delivery
       </Link>
+      <button type="button" className="min-h-14 w-full border-2 border-pmi-border bg-pmi-card text-lg font-black" onClick={() => downloadMasterList(snapshot.tracker)}>
+        Export Master List
+      </button>
       <section aria-labelledby="today-log">
         <h2 id="today-log" className="pmi-sheet-title">
           Today&apos;s log
@@ -58,15 +62,21 @@ export function DailyReceivePage() {
                   <p className="text-sm">Shipment # (MRC) {delivery.shipmentNumberMrc || '—'}</p>
                   <p className="mt-1 text-sm font-bold">{delivery.status === 'received' ? 'RECEIVED' : 'EXPECTED'}</p>
                   <ul className="mt-2 space-y-2">
-                    {lines.map((material) => (
-                      <li key={material.id}>
-                        <p className="font-bold">{material.description}</p>
-                        <p className="pmi-code text-sm">{material.materialCode}</p>
-                        <div className="mt-1">
-                          <VerificationBadge status={material.verificationStatus} />
-                        </div>
-                      </li>
-                    ))}
+                    {lines.map((material) => {
+                      const master = snapshot.tracker.rows.find(
+                        (row) => row.deliveryId === delivery.id && row.description === material.description,
+                      );
+                      return (
+                        <li key={material.id}>
+                          <p className="font-bold">{material.description}</p>
+                          <p className="pmi-code text-sm">{material.materialCode}</p>
+                          {master ? <p className="text-sm font-bold">Master List item {master.item}</p> : null}
+                          <div className="mt-1">
+                            <VerificationBadge status={material.verificationStatus} />
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <Link to="/packing-slips" className="mt-3 inline-flex min-h-12 items-center text-base font-black underline">
                     Packing slip photos
