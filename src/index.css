@@ -364,6 +364,58 @@ a {
   color: var(--pmi-text);
 }
 
+.pmi-master {
+  overflow-x: auto;
+  border: 2px solid var(--pmi-border);
+  background: var(--pmi-card);
+  max-width: 100%;
+}
+
+.pmi-master table {
+  border-collapse: collapse;
+  min-width: 78rem;
+  font-size: 0.75rem;
+}
+
+.pmi-master th,
+.pmi-master td {
+  border: 1px solid var(--pmi-border);
+  padding: 0.15rem 0.25rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.pmi-master th {
+  position: sticky;
+  top: 0;
+  background: var(--pmi-ink);
+  color: var(--pmi-sheet-text);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pmi-master input {
+  width: 6.5rem;
+  min-height: 2.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.1rem 0.15rem;
+}
+
+.pmi-master input.pmi-master-wide {
+  width: 14rem;
+}
+
+[data-theme='outdoor'] .pmi-master th {
+  background: #ffe500;
+  color: #000000;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

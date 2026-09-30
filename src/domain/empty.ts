@@ -1,4 +1,4 @@
-import type { AppSettings, AppSnapshot, ThemeMode } from './types';
+import type { AppSettings, AppSnapshot, ThemeMode, TrackerSheet } from './types';
 
 export function normalizeSettings(settings?: Partial<AppSettings> | null): AppSettings {
   const theme: ThemeMode = settings?.theme ?? 'light';
@@ -7,6 +7,19 @@ export function normalizeSettings(settings?: Partial<AppSettings> | null): AppSe
     sample: settings?.sample ?? false,
     lastCamera: settings?.lastCamera ?? null,
     lastGps: settings?.lastGps ?? null,
+  };
+}
+
+export function emptyTrackerSheet(): TrackerSheet {
+  return {
+    constructionOrderNo: '',
+    projectNumber: '',
+    projectName: '',
+    sheetDate: '',
+    inspector: '',
+    sourceFileName: '',
+    importedAt: null,
+    rows: [],
   };
 }
 
@@ -43,13 +56,7 @@ export function emptySnapshot(): AppSnapshot {
     discrepancies: [],
     mtrRequests: [],
     packingSlips: [],
-    tracker: {
-      constructionOrderNo: '',
-      projectNumber: '',
-      sourceFileName: '',
-      importedAt: null,
-      rows: [],
-    },
+    tracker: emptyTrackerSheet(),
     auditLogs: [],
     queue: [],
     settings: normalizeSettings(null),

@@ -317,6 +317,10 @@ export interface TrackerRow {
   id: string;
   item: string;
   qty: string;
+  qtyOrdered: string;
+  qtyReceived: string;
+  qtyUsed: string;
+  materialType: string;
   sizeInches: string;
   description: string;
   wallSdr: string;
@@ -325,6 +329,12 @@ export interface TrackerRow {
   modelNumber: string;
   serialLotHeat: string;
   ansiPressureRating: string;
+  uom: string;
+  location: string;
+  mtrYn: string;
+  matchesIfc: string;
+  damagedMaterials: string;
+  notes: string;
   source: TrackerSource;
   verificationStatus: VerificationStatus;
   confidence: number | null;
@@ -337,6 +347,9 @@ export interface TrackerRow {
 export interface TrackerSheet {
   constructionOrderNo: string;
   projectNumber: string;
+  projectName: string;
+  sheetDate: string;
+  inspector: string;
   sourceFileName: string;
   importedAt: string | null;
   rows: TrackerRow[];
